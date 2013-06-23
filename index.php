@@ -4,8 +4,8 @@
 	+-----------------+------------------------------------------------------------+
 	|  Script         | PHProxy   +   SabzProxy                                    |
 	|  Author         | Abdullah Arif                                              |
-	|  Modifier       | Forgetful  (Hamid R)                                       |
-	|  Last Modified  | 11:55 PM 4/16/2007                                         |
+	|  Modifier       | Forgetful  (Hamid R) + Amaury Carrade                      |
+	|  Last Modified  | 11:55 AM 06/21/2013                                        |
 	+-----------------+------------------------------------------------------------+
 	|  This program is free software; you can redistribute it and/or               |
 	|  modify it under the terms of the GNU General Public License                 |
@@ -29,10 +29,10 @@ error_reporting(-1);
 //
 
 $_flags = array (
-	'remove_scripts' => 0,
-	'accept_cookies' => 1,
-	'show_referer' => 1,
-	'session_cookies' => 1
+	'remove_scripts'  => false,
+	'accept_cookies'  => true,
+	'show_referer'    => true,
+	'session_cookies' => true
 );
 
 
@@ -46,12 +46,22 @@ $_labels = array(
 );
 
 
-// empêche de lire le localhost (plus pratique pour éviter qu’un visiteur lise de localhost de vôtre serveur, donc votre serveur
+// empêche de lire le localhost (plus pratique pour éviter qu'un visiteur lise de localhost de votre serveur, donc votre serveur
 $_hosts = array('#^127\.|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|localhost#i');
 
 //
 // END CONFIGURABLE OPTIONS.
 //
+
+session_name('prx');
+session_start(); 
+
+// Random key for URL (prevent from blocking)
+if(!isset($_SESSION['urlKey']) || empty($_SESSION['urlKey'])) {
+	$_SESSION['urlKey'] = substr(urlencode(sha1(uniqid(mt_rand(), true))), 0, 6);
+}
+$q  = $_SESSION['urlKey'];
+$hl = substr(urlencode(sha1($q)), 0, 8);
 
 
 // Calculate HMAC-SHA1 according to RFC2104
@@ -94,9 +104,6 @@ function XORDecrypt64($InputString, $KeyPhrase){
 	$InputString = XOREncryption($InputString, $KeyPhrase);
 	return $InputString;
 }
-
-session_name('prx');
-session_start(); 
 
 
 if (!isset($_SESSION['randomkey'])) {
@@ -181,15 +188,15 @@ function url_parse($url, & $container) {
 		$temp['port_ext'] = '';
 		$temp['base'] = $temp['scheme'].'://'.$temp['host'];
 
-		// ajoute le port si donnée
+		// ajoute le port si donné
 		if (isset($temp['port'])) {
 			$temp['base'] .= $temp['port_ext'] = ':' . $temp['port'];
 		}
-		// port SSL si https, 80 sinon.
+		// port SSL (443) si https, 80 sinon.
 		else {
 			$temp['port'] = $temp['scheme'] === 'https' ? 443 : 80;
 		}
-		// si le path existe, on le garde, sinon c’est un chemin relatif
+		// si le path existe, on le garde, sinon c'est un chemin relatif
 		$temp['path'] = isset($temp['path']) ? $temp['path'] : '/';
 		$path = array();
 		$temp['path'] = explode('/', $temp['path']);
@@ -199,6 +206,16 @@ function url_parse($url, & $container) {
 				array_pop($path); // permet de réduire le nombre de dossiers si on a un retour en haut=> /foo/../bar =>> /bar
 			}
 			elseif ($dir !== '.') {
+/*				$dir = rawurldecode($dir);
+				$count_i = strlen($dir);
+				// reconstruit le nom du dossier char par char (évite le genre de truc comme %20 dans les dossiers dâÃªtres parsÃ©s comme des sÃ©parateursâŠ)
+					// je pense qu'il y a beaucoup plus simple, mais bon.
+				for ($new_dir = '', $i = 0 ; $i < $count_i; $i++) {
+					$new_dir .= strspn($dir[$i], 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$-_.+!*\'(),?:@&;=') ? $dir[$i] : rawurlencode($dir[$i]);
+				}
+				$path[] = $new_dir;
+*/
+
 				$path[] = rawurlencode($dir);
 			}
 		}
@@ -221,7 +238,6 @@ function complete_url($url, $proxify = true) {
 	if ($url === '') {
 		return '';
 	}
-//	echo $url."\n\n\n";
 
 	$hash_pos = strrpos($url, '#');
 	$fragment = $hash_pos !== false ? '#' . substr($url, $hash_pos) : '';
@@ -240,21 +256,16 @@ function complete_url($url, $proxify = true) {
 				break;
 			case 'm':
 				if (substr($url, 0, 7) == 'mailto:') {
-					$proxify = false;
-					break;
-				}
-			case 'j':
-				if (substr($url, 0, 11) == 'javascript:') {
-					$proxify = false;
-					break;
-				}
+				$proxify = false;
+				break;
+			}
 			default:
 				$url = $GLOBALS['_base']['base'] . '/' . $url;
-				break;
 		}
 	}
-//	echo $url."\n\n\n";
-	return $proxify ? "{$GLOBALS['_script_url']}?q=" . encode_url($url) . $fragment : $url;
+
+	//$url = str_replace('&amp;', '&', $url);
+	return $proxify ? "{$GLOBALS['_script_url']}?" . $GLOBALS['q'] . "=" . encode_url($url) . $fragment : $url;
 }
 
 function proxify_inline_css($css) {
@@ -297,15 +308,15 @@ function proxify_css_url($url) {
 // SET FLAGS
 //
 
-if (isset($_POST['q']) and !isset($_GET['q']) and isset($_POST['hl'])) {
+if (isset($_POST[$q]) and !isset($_GET[$q]) and isset($_POST[$hl])) {
 	foreach ($_flags as $flag_name => $flag_value) {
-		$_iflags .= isset($_POST['hl'][$flag_name]) ? (string)(int)(bool)$_POST['hl'][$flag_name] : 0;
+		$_iflags .= isset($_POST[$hl][$flag_name]) ? (string)(int)(bool)$_POST[$hl][$flag_name] : 0;
 	}
 	$_iflags = base_convert(($_iflags != '' ? $_iflags : '0'), 2, 16);
 }
 
-elseif (isset($_GET['hl']) and !isset($_GET['____pgfa']) and ctype_alnum($_GET['hl'])) {
-	$_iflags = $_GET['hl'];
+elseif (isset($_GET[$hl]) and !isset($_GET['____pgfa']) and ctype_alnum($_GET[$hl])) {
+	$_iflags = $_GET[$hl];
 }
 
 elseif (isset($_COOKIE['flags']) and ctype_alnum($_COOKIE['flags'])) {
@@ -338,12 +349,11 @@ function decode_url($url) {
 	// Make sure hmac is correct
 	if ($hmac != hmacsha1( $_SESSION['randomkey'], $encrypted_url)) { 
 		echo "Wrong hmac.";
-//		exit; // Violent, but effective.
+		exit; // Violent, but effective.
 	}
 
 	// Decrypt the URL
 	$cleartext_url = XORDecrypt64($encrypted_url, $_SESSION['randomkey']);
-//	die($cleartext_url );
 	return str_replace(array('&amp;', '&#38;'), '&', $cleartext_url);
 }
 
@@ -385,16 +395,17 @@ $_COOKIE = clean_txt_array($_COOKIE);
 // FIGURE OUT WHAT TO DO (POST URL-form submit, GET form request, regular request, basic auth, cookie manager, show URL-form)
 //
 
-if (isset($_POST['q']) and !isset($_GET['q']) and !isset($_POST['____pgfa'])) {
-	header('Location: '.$_script_url.'?q='.encode_url($_POST['q']).'&hl='.base_convert($_iflags, 2, 16));
+if (isset($_POST[$q]) && !isset($_GET[$q]) && !isset($_POST['____pgfa'])) {
+	header('Location: '.$_script_url.'?'.$q.'='.encode_url($_POST[$q]).'&'.$hl.'='.base_convert($_iflags, 2, 16));
 	exit(0);
 }
 
 if (isset($_POST['____pgfa'])) {
-	$_url = ($_POST['____pgfa']);
+	$_url = $_POST['____pgfa'];
 	$qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
-	$arr = explode('&', $_SERVER['QUERY_STRING']);
 
+
+	$arr = explode('&', $_SERVER['QUERY_STRING']);
 	$getquery = "";
 	foreach($_POST as $key => $val){
 		if ($key != '____pgfa') {
@@ -410,25 +421,14 @@ if (isset($_POST['____pgfa'])) {
 	}
 
 	$_url .= $qstr.$getquery;
+
 	$_gotourl = complete_url($_url);
+
 	$_request_method = 'GET';
 }
 
-elseif (isset($_GET['q'])) {
-    $_url  = decode_url($_GET['q']);
-    $qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
-    $arr  = explode('&', $_SERVER['QUERY_STRING']);
-    
-    if (preg_match('#^\Q' . 'q' . '\E#', $arr[0]))
-    {
-        array_shift($arr);
-    }
-    
-    $_url .= $qstr . implode('&', $arr);
-}
-
-elseif (isset($_GET['q'])) {
-	$_url = decode_url($_GET['q']);
+elseif (isset($_GET[$q])) {
+	$_url = decode_url($_GET[$q]);
 }
 
 else {
@@ -461,12 +461,12 @@ function afficher_page_form($page) {
 		echo '<div id="orpx_nav-bar" style="margin:0;">'."\n";
 		echo '	<form method="post" action="'.$_SERVER['PHP_SELF'].'" style="text-align:center">'."\n";
 		echo '		<a href="'.$_SERVER['PHP_SELF'].'">Home</a> , <a href="'.$url.'">Go to the page</a><br/>'."\n";
-		echo '		<input id="____q" type="text" size="80" name="q" value="'.$url.'" />'."\n";
+		echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="'.$url.'" />'."\n";
 		echo '		<input type="submit" name="go" style="font-size: 12px;" value="GO"/>'."\n";
 		echo '		<br/><hr/>'."\n";
 		
 		foreach ($GLOBALS['_flags'] as $flag_name => $flag_value) {
-			echo '		<label><input type="checkbox" name="hl['.$flag_name . ']"'.($flag_value ? ' checked="checked"' : '').' /> '.$GLOBALS['_labels'][$flag_name][0].'</label>'."\n";
+			echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '['.$flag_name . ']"'.($flag_value ? ' checked="checked"' : '').' /> '.$GLOBALS['_labels'][$flag_name][0].'</label>'."\n";
 		}
 
 		echo '	</form>'."\n";
@@ -496,9 +496,10 @@ function afficher_page_form($page) {
 }
 
 
+
 $_basic_auth_realm = '';
 $_basic_auth_header = '';
-if (isset($_GET['q'], $_POST['____pbavn'], $_POST['username'], $_POST['password'])) {
+if (isset($_GET[$q], $_POST['____pbavn'], $_POST['username'], $_POST['password'])) {
 	$_request_method = 'GET';
 	$_basic_auth_realm = base64_decode($_POST['____pbavn']);
 	$_basic_auth_header = base64_encode($_POST['username'] . ':' . $_POST['password']);
@@ -569,7 +570,7 @@ do {
 	else {
 		$_request_headers .= "Accept: */*;q=0.1\r\n";
 	}
-	if ($_flags['show_referer'] and isset($_SERVER['HTTP_REFERER']) and preg_match('#^\Q' . $_script_url . '?q=\E([^&]+)#', $_SERVER['HTTP_REFERER'], $matches)) {
+	if ($_flags['show_referer'] and isset($_SERVER['HTTP_REFERER']) and preg_match('#^\Q' . $_script_url . '?' . $q . '=\E([^&]+)#', $_SERVER['HTTP_REFERER'], $matches)) {
 		$_request_headers .= 'Referer: ' . decode_url($matches[1]) . "\r\n";
 	}
 
@@ -848,11 +849,7 @@ if ($_content_type == 'text/css') {
 else {
 	if ($_flags['remove_scripts']) {
 		$_response_body = preg_replace('#<\s*script[^>]*?>.*?<\s*/\s*script\s*>#si', '', $_response_body);
-
-		$_response_body = preg_replace("#(<\s*[\w]* )([^>]*) (on[a-z]*=\"[^\"]*\")(([^>]|(>?<=(<[^\S<])))*>)#i", '$1$2$4', $_response_body);// "onclick", etc.
-
-		$_response_body = preg_replace("#(href=(['\"]))(javascript:(?:(?!\g{2}).|(?:(?<=\\\)\g{2}))+)*(\g{2})#i", '$1$4', $_response_body);//href javascript
-
+		$_response_body = preg_replace("#(<\s*[\w]* )([^>]*) (on[a-z]*=\"[^\"]*\")([^>]*>)#i", '$1$2 $4', $_response_body);// "onclick", etc.
 		$_response_body = preg_replace('#<noscript>(.*?)</noscript>#si', "$1", $_response_body);
 	}
 
@@ -862,35 +859,33 @@ else {
 
 	$tags = array(
 			'a'			=> array('href'),
-			'applet'		=> array('codebase', 'code', 'object', 'archive'),
-			'area'		=> array('href'),
 			'audio'		=> array('src'),
+			'img'			=> array('src'),
+			'body'		=> array('background'),
 			'base'		=> array('href'),
+			'frame'		=> array('src', 'longdesc'),
+			'iframe'		=> array('src', 'longdesc'),
+			'head'		=> array('profile'),
+			'layer'		=> array('src'),
+			'input'		=> array('src', 'usemap'),
+			'form'		=> array('action'),
+			'area'		=> array('href'),
+			'link'		=> array('href'),
+			'param'		=> array('value'),
+			'applet'		=> array('codebase', 'code', 'object', 'archive'),
+			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
+			'script'		=> array('src'),
+			'table'		=> array('background'),
+			'tr'			=> array('background'),
+			'th'			=> array('background'),
+			'td'			=> array('background'),
 			'bgsound'	=> array('src'),
 			'blockquote'=> array('cite'),
-			'body'		=> array('background'),
 			'del'			=> array('cite'),
 			'embed'		=> array('src'),
 			'fig'			=> array('src', 'imagemap'),
-			'frame'		=> array('src', 'longdesc'),
-			'head'		=> array('profile'),
-			'html'		=> array('itemtype', 'manifest'),
-			'iframe'		=> array('src', 'longdesc'),
-			'img'			=> array('src'),
-			'input'		=> array('src', 'usemap'),
 			'ins'			=> array('cite'),
-			'link'		=> array('href'),
-			'layer'		=> array('src'),
-			'meta'		=> array('name', 'content'),
-			'form'		=> array('action'),
-			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
-			'param'		=> array('value'),
 			'q'			=> array('cite'),
-			'script'		=> array('src'),
-			'table'		=> array('background'),
-			'td'			=> array('background'),
-			'th'			=> array('background'),
-			'tr'			=> array('background'),
 			'video'		=> array('src'),
 		);
 
@@ -901,22 +896,33 @@ else {
 		$_response_body = str_replace($matches[$i][0], $matches[$i][1]. proxify_css($matches[$i][2]) .$matches[$i][3], $_response_body);
 	}
 
-	preg_match_all("#<\s*/?\s*([a-zA-Z0-9-]+)(?: ((?:\s*\w+=(['\"])(?:(?!\g{3}).|(?:(?<=\\\)\g{3}))+\g{3})|(?:\s*[\w-\d]+=[^ >/]+))*(?:[\s\w\s]*))*/?>#S", $_response_body, $matches);
+	preg_match_all("#<\s*/?([a-zA-Z-]+) ([^>]+)>#S", $_response_body, $matches);
 
 	$count_i = count($matches[0]);
-	for ($i = 0 ; $i < $count_i ; $i++) {
-	if (preg_match_all("#([a-zA-Z/-:]*)=((?:(['\"])(?:(?:(?!\g{3}).|(?:(?<=\\\)\g{3}))+)\g{3})|(?:[^ >/]+))#", trim($matches[0][$i]), $m, PREG_SET_ORDER)) {
+	for ($i = 0 ; $i < $count_i ; ++$i) {
+		if (!preg_match_all("#([a-zA-Z\-\/]+)\s*(?:=\s*(?:\"([^\">]*)\"?|'([^'>]*)'?|([^'\"\s]*)))?#S", $matches[2][$i], $m, PREG_SET_ORDER)) {
+			continue;
+		}
+
 		$rebuild = false;
 		$extra_html = $temp = '';
 		$attrs = array();
 
 		$count_j = count($m);
 		for ($j = 0 ; $j < $count_j; ++$j) {
-			if (isset($m[$j][2])) {
-				$attrs[strtolower($m[$j][1])] = trim(trim($m[$j][2], '"'), '\'');
-			}
+			if (isset($m[$j][4])) 
+				$attrs[strtolower($m[$j][1])] = $m[$j][4];
+			elseif (isset($m[$j][3]))
+				$attrs[strtolower($m[$j][1])] = $m[$j][3];
+			elseif (isset($m[$j][2]))
+				$attrs[strtolower($m[$j][1])] = $m[$j][2];
+			elseif (isset($m[$j][5]))
+				$attrs[strtolower($m[$j][1])] = $m[$j][5];
+			elseif (isset($m[$j][6]))
+				$attrs[strtolower($m[$j][1])] = $m[$j][6];
+			else
+				$attrs[strtolower($m[$j][1])] = false;
 		}
-
 
 		if (isset($attrs['style'])) {
 			$rebuild = true;
@@ -924,23 +930,26 @@ else {
 		}
 
 		$tag = strtolower($matches[1][$i]);
+
 		if (isset($tags[$tag])) {
 			switch ($tag) {
 				case 'form':
-					$rebuild = true;
+					if (isset($attrs['action'])) {
+						$rebuild = true;
 
-					if (empty($attrs['action'])) {
-						$attrs['action'] = $_url_parts['path'];
+						if (trim($attrs['action']) === '') {
+							$attrs['action'] = $_url_parts['path'];
+						}
+
+						if (!isset($attrs['method']) || strtolower(trim($attrs['method'])) === 'get') {
+							$extra_html = '<input type="hidden" name="' . '____pgfa' . '" value="' .complete_url($attrs['action'], false). '" />';
+							$attrs['action'] = 'index.php';
+							$attrs['method'] = 'post';
+							break;
+						}
+
+						$attrs['action'] = complete_url($attrs['action']);
 					}
-
-					if (!isset($attrs['method']) or strtolower(trim($attrs['method'])) === 'get') {
-						$extra_html = '<input type="hidden" name="' . '____pgfa' . '" value="' .(complete_url($attrs['action'], false)). '" />';
-						$attrs['action'] = 'index.php';
-						$attrs['method'] = 'post';
-						break;
-					}
-
-					$attrs['action'] = complete_url($attrs['action']);
 					break;
 
 				case 'base':
@@ -1012,21 +1021,10 @@ else {
 
 				case 'param':
 					if (isset($attrs['valuetype'], $attrs['value']) && strtolower($attrs['valuetype']) == 'ref' && preg_match('#^[\w.+-]+://#', $attrs['value'])) {
-						$rebuild = true;
-						$attrs['value'] = complete_url($attrs['value']);
+					$rebuild = true;
+					$attrs['value'] = complete_url($attrs['value']);
 					}
 					break;
-				case 'meta':
-					if (isset($attrs['content']) and isset($attr['name']) and $attr['name'] == 'viewport' ) {
-						$rebuild = false;
-					}
-					break;
-				case 'html':
-					if (isset($attrs['manifest']) ) {
-						$rebuild = true;
-						$attrs['manifest'] = '';
-						break;
-					}
 				case 'frame':
 				case 'iframe':
 					if (isset($attrs['src'])) {
@@ -1043,7 +1041,7 @@ else {
 					foreach ($tags[$tag] as $attr) {
 						if (isset($attrs[$attr])) {
 							$rebuild = true;
-							if (!preg_match('#^data:#', trim($attrs[$attr]))) {
+							if (!preg_match('#data:#', $attrs[$attr])) {
 								$attrs[$attr] = complete_url($attrs[$attr]);
 							}
 						}
@@ -1058,22 +1056,22 @@ else {
 				$delim = strpos($value, '"') && !strpos($value, "'") ? "'" : '"';
 				$new_tag .= ' ' . $name . ($value !== false ? '='.$delim.$value.$delim : '');
 			}
+
 			$_response_body = str_replace($matches[0][$i], $new_tag . '>' . $extra_html, $_response_body);
 		}
 	}
 
-}
 	if (!isset($_GET['noform'])) {
 
 		$_url_form = '<div style="border-radius: 0 0 30px 0; top:-110px; height: 140px; width:500px; left:-470px; overflow: hidden; padding:4px; text-align:center; border-bottom:1px solid #755; color:#000; background-color:#FF9864; font-size:12px;z-index:2147483647; position:fixed; text-shadow:none;" onmouseover="this.style.top=\'0px\'; this.style.width=\'100%\'; this.style.left=\'0px\'" onmouseout="this.style.top=\'-110px\'; this.style.width=\'500px\'; this.style.left=\'-470px\'">'."\n";
 		$_url_form .= '<form method="post" action="'.$_script_url.'" style="text-align:center">'."\n";
 		$_url_form .= '<a style="color:#000;text-shadow:none;" href="'.$_script_base.'">Home</a> , <a style="color:#000;text-shadow:none;" href="'.$_url.'">Go to the page</a><br/>';
-		$_url_form .= '<input type="text" size="80" name="q" value="'.$_url.'" />';
+		$_url_form .= '<input type="text" size="80" name="' . $q . '" value="'.$_url.'" />';
 		$_url_form .= '<input type="submit" name="go" style="font-size: 12px;" value="GO"/>';
 		$_url_form .= '<br/><hr/>';
 		
 		foreach ($_flags as $flag_name => $flag_value) {
-			$_url_form .= '<label><input type="checkbox" name="hl['.$flag_name . ']"'.($flag_value ? ' checked="checked"' : '').' /> '.$_labels[$flag_name][0].'</label>';
+			$_url_form .= '<label><input type="checkbox" name="' . $hl . '['.$flag_name . ']"'.($flag_value ? ' checked="checked"' : '').' /> '.$_labels[$flag_name][0].'</label>';
 		}
 
 		$_url_form .= "</form></div>";
