@@ -559,7 +559,8 @@ do {
 
 	if ($_socket === FALSE) {
 		afficher_page_form(array('type' => 'error', 'flag' => 'It was not possible to reach the server at <strong>' . $_url . '</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. ' . htmlspecialchars($err_no) . ': '.htmlspecialchars($err_str) . '.</small>'));
-
+	}
+	
 	//
 	// SET REQUEST HEADERS
 	//
