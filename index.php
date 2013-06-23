@@ -5,7 +5,7 @@
 	|  Script         | PHProxy   +   SabzProxy                                    |
 	|  Author         | Abdullah Arif                                              |
 	|  Modifier       | Forgetful  (Hamid R) + Amaury Carrade                      |
-	|  Last Modified  | 11:55 AM 06/21/2013                                        |
+	|  Last Modified  | 11:55 PM 06/23/2013                                        |
 	+-----------------+------------------------------------------------------------+
 	|  This program is free software; you can redistribute it and/or               |
 	|  modify it under the terms of the GNU General Public License                 |
@@ -453,23 +453,27 @@ function afficher_page_form($page) {
 #orpx_nav-bar a:hover { color: #007744; }
 .windows-popup { background-color: #BF6464; border-top: 1px solid #44352C; border-bottom: 1px solid #44352C; clear: both; padding: 30px 0; text-align: center; margin-top: 152px; }
 .windows-popup { background-color: #C27D61; }
-.windows-popup p, .windows-popup form { margin: 5px; }';
+.windows-popup p, .windows-popup form { margin: 5px; }' . "\n";
 	echo '</style>'."\n";
 	echo '</head>'."\n";
 	echo '<body>'."\n";
 
 		echo '<div id="orpx_nav-bar" style="margin:0;">'."\n";
 		echo '	<form method="post" action="'.$_SERVER['PHP_SELF'].'" style="text-align:center">'."\n";
-		echo '		<a href="'.$_SERVER['PHP_SELF'].'">Home</a> , <a href="'.$url.'">Go to the page</a><br/>'."\n";
+		echo '		<a href="'.$_SERVER['PHP_SELF'].'">Home</a> — <a href="'.$url.'">Go to the page</a><br/>'."\n";
 		echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="'.$url.'" />'."\n";
-		echo '		<input type="submit" name="go" style="font-size: 12px;" value="GO"/>'."\n";
+		echo '		<input type="submit" name="go" style="font-size: 12px;" value="Acc&eacute;der au site"/>'."\n";
 		echo '		<br/><hr/>'."\n";
 		
 		foreach ($GLOBALS['_flags'] as $flag_name => $flag_value) {
-			echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '['.$flag_name . ']"'.($flag_value ? ' checked="checked"' : '').' /> '.$GLOBALS['_labels'][$flag_name][0].'</label>'."\n";
+			echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '['.$flag_name . ']"'.($flag_value == true ? ' checked="checked"' : '').' /> '.$GLOBALS['_labels'][$flag_name][0].'</label>'."\n";
 		}
 
 		echo '	</form>'."\n";
+		echo '</div>'."\n";
+		
+		echo '<div class="windows-popup" id="noCookies" style="display: none;">'."\n";
+			echo 'Cookies are disabled for this website; they are required';
 		echo '</div>'."\n";
 
 
@@ -488,10 +492,21 @@ function afficher_page_form($page) {
 		echo '<div class="windows-popup" id="error">'."\n";
 			echo $page['flag'];
 		echo '</div>'."\n";
-	}
 
+
+	}
+	
+	echo '<script type="text/javascript">' . "\n";
+	echo '	window.onload = function(e){ 
+		if(navigator.cookieEnabled == false) {
+			document.getElementById("noCookies").style.display = "block";
+		}
+	}' . "\n";
+    echo '</script>' . "\n";
 	echo '</body>'."\n";
 	echo '</html>'."\n";
+
+
 	exit;
 }
 
@@ -543,8 +558,7 @@ do {
 	$_socket = @fsockopen((($_url_parts['scheme'] === 'https' and $_system['ssl']) ? 'ssl://' : 'tcp://').$_url_parts['host'], $_url_parts['port'], $err_no, $err_str, 10);
 
 	if ($_socket === FALSE) {
-		afficher_page_form(array('type' => 'error', 'flag' => 'Failed to connect to host: '.htmlspecialchars($err_no).' - '.htmlspecialchars($err_str)));
-	}
+		afficher_page_form(array('type' => 'error', 'flag' => 'It was not possible to reach the server at <strong>' . $_url . '</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. ' . htmlspecialchars($err_no) . ': '.htmlspecialchars($err_str) . '.</small>'));
 
 	//
 	// SET REQUEST HEADERS
