@@ -256,11 +256,17 @@ function complete_url($url, $proxify = true) {
 				break;
 			case 'm':
 				if (substr($url, 0, 7) == 'mailto:') {
-				$proxify = false;
-				break;
-			}
+					$proxify = false;
+          				break;
+        			}
+      			case 'j':
+        			if (substr($url, 0, 11) == 'javascript:') {
+          				$proxify = false;
+          				break;
+       				}
 			default:
 				$url = $GLOBALS['_base']['base'] . '/' . $url;
+				break;
 		}
 	}
 
@@ -401,11 +407,10 @@ if (isset($_POST[$q]) && !isset($_GET[$q]) && !isset($_POST['____pgfa'])) {
 }
 
 if (isset($_POST['____pgfa'])) {
-	$_url = $_POST['____pgfa'];
+	$_url = ($_POST['____pgfa']);
 	$qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
-
-
 	$arr = explode('&', $_SERVER['QUERY_STRING']);
+
 	$getquery = "";
 	foreach($_POST as $key => $val){
 		if ($key != '____pgfa') {
@@ -421,14 +426,21 @@ if (isset($_POST['____pgfa'])) {
 	}
 
 	$_url .= $qstr.$getquery;
-
 	$_gotourl = complete_url($_url);
-
 	$_request_method = 'GET';
 }
 
 elseif (isset($_GET[$q])) {
-	$_url = decode_url($_GET[$q]);
+    $_url  = decode_url($_GET[$q]);
+    $qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
+    $arr  = explode('&', $_SERVER['QUERY_STRING']);
+    
+    if (preg_match('#^\Q' . 'q' . '\E#', $arr[0]))
+    {
+        array_shift($arr);
+    }
+    
+    $_url .= $qstr . implode('&', $arr);
 }
 
 else {
@@ -872,35 +884,37 @@ else {
 	// PROXIFY HTML RESOURCE
 	//
 
-	$tags = array(
+$tags = array(
 			'a'			=> array('href'),
-			'audio'		=> array('src'),
-			'img'			=> array('src'),
-			'body'		=> array('background'),
-			'base'		=> array('href'),
-			'frame'		=> array('src', 'longdesc'),
-			'iframe'		=> array('src', 'longdesc'),
-			'head'		=> array('profile'),
-			'layer'		=> array('src'),
-			'input'		=> array('src', 'usemap'),
-			'form'		=> array('action'),
-			'area'		=> array('href'),
-			'link'		=> array('href'),
-			'param'		=> array('value'),
 			'applet'		=> array('codebase', 'code', 'object', 'archive'),
-			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
-			'script'		=> array('src'),
-			'table'		=> array('background'),
-			'tr'			=> array('background'),
-			'th'			=> array('background'),
-			'td'			=> array('background'),
+			'area'		=> array('href'),
+			'audio'		=> array('src'),
+			'base'		=> array('href'),
 			'bgsound'	=> array('src'),
 			'blockquote'=> array('cite'),
+			'body'		=> array('background'),
 			'del'			=> array('cite'),
 			'embed'		=> array('src'),
 			'fig'			=> array('src', 'imagemap'),
+			'frame'		=> array('src', 'longdesc'),
+			'head'		=> array('profile'),
+			'html'		=> array('itemtype', 'manifest'),
+			'iframe'		=> array('src', 'longdesc'),
+			'img'			=> array('src'),
+			'input'		=> array('src', 'usemap'),
 			'ins'			=> array('cite'),
+			'link'		=> array('href'),
+			'layer'		=> array('src'),
+			'meta'		=> array('name', 'content'),
+			'form'		=> array('action'),
+			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
+			'param'		=> array('value'),
 			'q'			=> array('cite'),
+			'script'		=> array('src'),
+			'table'		=> array('background'),
+			'td'			=> array('background'),
+			'th'			=> array('background'),
+			'tr'			=> array('background'),
 			'video'		=> array('src'),
 		);
 
@@ -1036,10 +1050,21 @@ else {
 
 				case 'param':
 					if (isset($attrs['valuetype'], $attrs['value']) && strtolower($attrs['valuetype']) == 'ref' && preg_match('#^[\w.+-]+://#', $attrs['value'])) {
-					$rebuild = true;
-					$attrs['value'] = complete_url($attrs['value']);
+						$rebuild = true;
+						$attrs['value'] = complete_url($attrs['value']);
 					}
 					break;
+				case 'meta':
+					if (isset($attrs['content']) and isset($attr['name']) and $attr['name'] == 'viewport' ) {
+						$rebuild = false;
+					}
+					break;
+				case 'html':
+					if (isset($attrs['manifest']) ) {
+						$rebuild = true;
+						$attrs['manifest'] = '';
+						break;
+					}
 				case 'frame':
 				case 'iframe':
 					if (isset($attrs['src'])) {
