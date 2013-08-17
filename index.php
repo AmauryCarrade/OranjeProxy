@@ -4,7 +4,7 @@
 	+-----------------+------------------------------------------------------------+
 	|  Script         | PHProxy   +   SabzProxy                                    |
 	|  Author         | Abdullah Arif                                              |
-	|  Modifier       | Forgetful  (Hamid R) + Amaury Carrade                      |
+	|  Modifier       | Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade   |
 	|  Last Modified  | 11:55 PM 06/23/2013                                        |
 	+-----------------+------------------------------------------------------------+
 	|  This program is free software; you can redistribute it and/or               |
@@ -23,11 +23,11 @@
 	+------------------------------------------------------------------------------+
 */
 
-error_reporting(-1);
-//
+
 // CONFIGURABLE OPTIONS
 //
 
+// Default values
 $_flags = array (
 	'remove_scripts'  => false,
 	'accept_cookies'  => true,
@@ -40,14 +40,18 @@ $_flags = array (
 $_labels = array(
 	'remove_scripts' => array('Remove client-side scripting (I.E, Javascript)', 'Remove client-side scripting'), 
 	'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'), 
-	'show_referer' => array('Show actual referring Web site', 'Show actual referring Web site'), 
+	'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'), 
 	'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'), 
 	'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only ') 
 );
 
 
-// empêche de lire le localhost (plus pratique pour éviter qu'un visiteur lise de localhost de votre serveur, donc votre serveur
-$_hosts = array('#^127\.|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|localhost#i');
+// Put here the hosts blacklisted by the server.
+// /!\ Parsed as a regular expression. Don't forget to escape characters.
+$_hosts_blacklisted = array(
+	// empêche de lire le localhost (plus pratique pour éviter qu'un visiteur lise de localhost de votre serveur, donc votre serveur
+	'#^127\.|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|localhost#i',
+);
 
 //
 // END CONFIGURABLE OPTIONS.
@@ -132,7 +136,6 @@ $_http_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : (isset($_SE
 $_http_s = ( (isset($_ENV['HTTPS']) and $_ENV['HTTPS'] == 'on') or $_SERVER['SERVER_PORT'] == 443) ? 'https' : 'http';
 $_http_port = ($_SERVER['SERVER_PORT'] != 80 and $_SERVER['SERVER_PORT'] != 443 ? ':'.$_SERVER['SERVER_PORT'] : '');
 $_script_url = $_http_s.'://'.$_http_host.$_http_port.$_SERVER['PHP_SELF'];
-
 
 $_script_base  = substr($_script_url, 0, strrpos($_script_url, '/')+1);
 
@@ -474,7 +477,7 @@ function afficher_page_form($page) {
 		echo '	<form method="post" action="'.$_SERVER['PHP_SELF'].'" style="text-align:center">'."\n";
 		echo '		<a href="'.$_SERVER['PHP_SELF'].'">Home</a> — <a href="'.$url.'">Go to the page</a><br/>'."\n";
 		echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="'.$url.'" />'."\n";
-		echo '		<input type="submit" name="go" style="font-size: 12px;" value="Acc&eacute;der au site"/>'."\n";
+		echo '		<input type="submit" name="go" style="font-size: 12px;" value="Go to the site"/>'."\n";
 		echo '		<br/><hr/>'."\n";
 		
 		foreach ($GLOBALS['_flags'] as $flag_name => $flag_value) {
@@ -544,8 +547,8 @@ if (strpos($_url, '://') === false) {
 $_url_parts = array();
 if (url_parse($_url, $_url_parts)) {
 	$_base = $_url_parts;
-	if (!empty($_hosts)) {
-		foreach ($_hosts as $host) {
+	if (!empty($_hosts_blacklisted)) {
+		foreach ($_hosts_blacklisted as $host) {
 			if (preg_match($host, $_url_parts['host'])) {
 				afficher_page_form(array('type' => 'error', 'flag' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.'));
 			}
@@ -877,6 +880,7 @@ else {
 	if ($_flags['remove_scripts']) {
 		$_response_body = preg_replace('#<\s*script[^>]*?>.*?<\s*/\s*script\s*>#si', '', $_response_body);
 		$_response_body = preg_replace("#(<\s*[\w]* )([^>]*) (on[a-z]*=\"[^\"]*\")([^>]*>)#i", '$1$2 $4', $_response_body);// "onclick", etc.
+		$_response_body = preg_replace("#(href=(['\"]))(javascript:(?:(?!\g{2}).|(?:(?<=\\\)\g{2}))+)*(\g{2})#i", '$1$4', $_response_body);//href javascript
 		$_response_body = preg_replace('#<noscript>(.*?)</noscript>#si', "$1", $_response_body);
 	}
 
@@ -884,38 +888,38 @@ else {
 	// PROXIFY HTML RESOURCE
 	//
 
-$tags = array(
-			'a'			=> array('href'),
+	$tags = array(
+			'a'				=> array('href'),
 			'applet'		=> array('codebase', 'code', 'object', 'archive'),
-			'area'		=> array('href'),
-			'audio'		=> array('src'),
-			'base'		=> array('href'),
-			'bgsound'	=> array('src'),
-			'blockquote'=> array('cite'),
-			'body'		=> array('background'),
+			'area'			=> array('href'),
+			'audio'			=> array('src'),
+			'base'			=> array('href'),
+			'bgsound'		=> array('src'),
+			'blockquote'	=> array('cite'),
+			'body'			=> array('background'),
 			'del'			=> array('cite'),
-			'embed'		=> array('src'),
+			'embed'			=> array('src'),
 			'fig'			=> array('src', 'imagemap'),
-			'frame'		=> array('src', 'longdesc'),
-			'head'		=> array('profile'),
-			'html'		=> array('itemtype', 'manifest'),
+			'frame'			=> array('src', 'longdesc'),
+			'head'			=> array('profile'),
+			'html'			=> array('itemtype', 'manifest'),
 			'iframe'		=> array('src', 'longdesc'),
 			'img'			=> array('src'),
-			'input'		=> array('src', 'usemap'),
+			'input'			=> array('src', 'usemap'),
 			'ins'			=> array('cite'),
-			'link'		=> array('href'),
-			'layer'		=> array('src'),
-			'meta'		=> array('name', 'content'),
-			'form'		=> array('action'),
+			'link'			=> array('href'),
+			'layer'			=> array('src'),
+			'meta'			=> array('name', 'content'),
+			'form'			=> array('action'),
 			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
-			'param'		=> array('value'),
-			'q'			=> array('cite'),
+			'param'			=> array('value'),
+			'q'				=> array('cite'),
 			'script'		=> array('src'),
-			'table'		=> array('background'),
+			'table'			=> array('background'),
 			'td'			=> array('background'),
 			'th'			=> array('background'),
 			'tr'			=> array('background'),
-			'video'		=> array('src'),
+			'video'			=> array('src'),
 		);
 
 	preg_match_all('#(<\s*style[^>]*>)(.*?)(<\s*/\s*style[^>]*>)#is', $_response_body, $matches, PREG_SET_ORDER);
@@ -966,7 +970,7 @@ $tags = array(
 					if (isset($attrs['action'])) {
 						$rebuild = true;
 
-						if (trim($attrs['action']) === '') {
+						if (empty(trim($attrs['action']))) {
 							$attrs['action'] = $_url_parts['path'];
 						}
 
