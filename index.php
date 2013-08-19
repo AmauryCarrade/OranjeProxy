@@ -57,6 +57,8 @@ $_hosts_blacklisted = array(
 // END CONFIGURABLE OPTIONS.
 //
 
+function vd($var) { var_dump($var); }
+
 session_name('prx');
 session_start(); 
 
@@ -356,7 +358,7 @@ function decode_url($url) {
 	$encrypted_url = substr($s,40,strlen($s)-40);
 
 	// Make sure hmac is correct
-	if ($hmac != hmacsha1( $_SESSION['randomkey'], $encrypted_url)) { 
+	if ($hmac != hmacsha1($_SESSION['randomkey'], $encrypted_url)) { 
 		echo "Wrong hmac.";
 		exit; // Violent, but effective.
 	}
@@ -436,14 +438,20 @@ if (isset($_POST['____pgfa'])) {
 elseif (isset($_GET[$q])) {
     $_url  = decode_url($_GET[$q]);
     $qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
-    $arr  = explode('&', $_SERVER['QUERY_STRING']);
-    
-    if (preg_match('#^\Q' . 'q' . '\E#', $arr[0]))
-    {
-        array_shift($arr);
-    }
-    
-    $_url .= $qstr . implode('&', $arr);
+    $arrs = explode('&', $_SERVER['QUERY_STRING']);
+
+    foreach($arrs AS $key => $arr) {
+	    if (preg_match('#^\Q(' . $q . '|' . $hl . ')\E#', $arr))
+	    {
+	        unset($arrs[$key]);
+	    }
+	}
+    $_url .= $qstr . implode('&', $arrs);
+
+    // Removing $q and $hl from the URL
+    // Some websites doesn't work wothout the exact URL entered (i.e. with some GET params like
+    // our $q & $hl).
+    $_url = preg_replace('#(' . $q . '|' . $hl . ')=(.*)(&)?#i', NULL, $_url);
 }
 
 else {
@@ -1148,4 +1156,3 @@ $_response_body = preg_replace('#<\s*body(.*?)>#si', "$0\n".'' , $_response_body
 $_response_body = preg_replace('#</\s*body>#si', ''."$0" , $_response_body);
 
 echo $_response_body;
-
