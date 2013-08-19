@@ -976,22 +976,20 @@ else {
 		if (isset($tags[$tag])) {
 			switch ($tag) {
 				case 'form':
-					if (isset($attrs['action'])) {
-						$rebuild = true;
+					$rebuild = true;
 
-						if (trim($attrs['action']) == NULL) {
-							$attrs['action'] = $_url_parts['path'];
-						}
-
-						if (!isset($attrs['method']) || strtolower(trim($attrs['method'])) === 'get') {
-							$extra_html = '<input type="hidden" name="' . '____pgfa' . '" value="' .complete_url($attrs['action'], false). '" />';
-							$attrs['action'] = 'index.php';
-							$attrs['method'] = 'post';
-							break;
-						}
-
-						$attrs['action'] = complete_url($attrs['action']);
+					if (!isset($attrs['action']) || trim($attrs['action']) == NULL) {
+						$attrs['action'] = $_url_parts['path'];
 					}
+
+					if (!isset($attrs['method']) || strtolower(trim($attrs['method'])) === 'get') {
+						$extra_html = '<input type="hidden" name="' . '____pgfa' . '" value="' .complete_url($attrs['action'], false). '" />';
+						$attrs['action'] = 'index.php';
+						$attrs['method'] = 'post';
+						break;
+					}
+
+					$attrs['action'] = complete_url($attrs['action']);
 					break;
 
 				case 'base':
