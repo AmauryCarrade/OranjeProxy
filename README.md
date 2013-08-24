@@ -9,3 +9,5 @@ Le script consiste en un seul fichier « index.php » à placer dans un dossier 
 OranjeProxy est distribué sous licence libre GNU/GPL.
 
 Nota : le fichier « `oranjeproxy.svg` » n'est pas nécessaire, il est juste utilisé pour générer la favicon, qui est intégrée dans le fichier `index.php`.
+
+Second nota : la version [du Hollandais Volant](http://lehollandaisvolant.net/tout/oranjeproxy) est [cette version](https://github.com/Bubbendorf/OranjeProxy/commit/4b062ec29b9398b65d5bc078469badfde318ef5c).
