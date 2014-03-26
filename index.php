@@ -5,7 +5,7 @@
 	|  Script         | PHProxy   +   SabzProxy                                    |
 	|  Author         | Abdullah Arif                                              |
 	|  Modifier       | Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade   |
-	|  Last Modified  | 11:55 PM 06/23/2013                                        |
+	|  Last Modified  | 11:55 PM 26/03/2014                                        |
 	+-----------------+------------------------------------------------------------+
 	|  This program is free software; you can redistribute it and/or               |
 	|  modify it under the terms of the GNU General Public License                 |
@@ -437,21 +437,35 @@ if (isset($_POST['____pgfa'])) {
 
 elseif (isset($_GET[$q])) {
     $_url  = decode_url($_GET[$q]);
+    
+    // If the request have already some arguments, a & must be used to add new ones. Else, we need a ?.
+    // The sign to use is stored here.
     $qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
+    
     $arrs = explode('&', $_SERVER['QUERY_STRING']);
+    
+    // Length of the names of the arguments to remove ($q & $hl), plus one to take the "=" sign into account.
+    // Used a few lines later to extract these.
+    $lenQ = strlen($q) + 1;
+    $lenHL = strlen($hl) + 1;
 
     foreach($arrs AS $key => $arr) {
-	    if (preg_match('#^\Q(' . $q . '|' . $hl . ')\E#', $arr))
-	    {
-	        unset($arrs[$key]);
+	    // $q
+	    if(substr($arr, 0, $lenQ) == $q + '=') {
+			unset($arrs[$key]);
+	    }
+	    // $hl
+	    if(substr($arr, 0, $lenHL) == $hl + '=') {
+			unset($arrs[$key]);
 	    }
 	}
-    $_url .= $qstr . implode('&', $arrs);
-
-    // Removing $q and $hl from the URL
-    // Some websites doesn't work wothout the exact URL entered (i.e. with some GET params like
-    // our $q & $hl).
-    $_url = preg_replace('#(' . $q . '|' . $hl . ')=(.*)(&)?#i', NULL, $_url);
+	
+	// Is a "?" needed?
+	if(strpos($_url, '?') === false && count($arrs) === 0) {
+		$qstr = '';
+	}
+	
+	$_url .= $qstr . implode('&', $arrs);
 }
 
 else {
