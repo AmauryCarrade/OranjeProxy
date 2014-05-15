@@ -1101,6 +1101,20 @@ else {
 						$attrs['longdesc'] = complete_url($attrs['longdesc']);
 					}
 					break;
+				
+				case 'a':
+					if (isset($attrs['href'])) { // Juste in case... :p
+						$rebuild = true;
+						
+						if (!isset($attrs['title']) || empty($attrs['title'])) {
+							$attrs['title'] = $attrs['href'];
+						}
+						else {
+							$attrs['title'] .= ' (' . $attrs['href'] . ')';
+						}
+						
+						$attrs['href'] = complete_url($attrs['href']);
+					}
 
 				default:
 					foreach ($tags[$tag] as $attr) {
