@@ -15,6 +15,6 @@ Second nota : la version [du Hollandais Volant](http://lehollandaisvolant.net/to
 Cette version d'OranjeProxy est basée sur celle du [Hollandais Volant](http://lehollandaisvolant.net/tout/oranjeproxy/). Si on remonte dans le temps : 
  * la version initiale est PHProxy, sous licence GPL ; 
  * cette version a été forkée pour devenir [Sabz-Proxy](http://www.sabzproxy.com/) ; 
- * Sabz-Proxy a été forké en [VerdaProxy](http://champlywood.free.fr/verdaproxy/) par Qwerty (le fork apporte des améliorations, notamment : plus de sites pris en charge, les liens sont uniques et chiffrés, quelques options sont appliqués en dur, discretion plus grande pour permettre une meilleure résistance aux blockages…) ; 
+ * Sabz-Proxy a été forké en [VerdaProxy](http://champlywood.free.fr/verdaproxy/) par Qwerty (le fork apporte des améliorations, notamment : plus de sites pris en charge, les liens sont uniques et chiffrés, quelques options sont appliqués en dur, discretion plus grande pour permettre une meilleure résistance aux blocages…) ; 
  * [OranjeProxy](http://lehollandaisvolant.net/tout/oranjeproxy), la version du Hollandais Volant, est un fork de VerdaProxy ; 
- * ma version est un fork de la version du Hollandans Volant (presqu'une reprise, vu que Timo met à jour sa version en se basant sur la mienne, jusqu'à présent).
+ * ma version est un fork de la version du Hollandais Volant (presqu'une reprise, vu que Timo met à jour sa version en se basant sur la mienne, jusqu'à présent).
