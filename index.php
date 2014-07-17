@@ -1115,7 +1115,7 @@ else {
 						
 						$attrs['href'] = complete_url($attrs['href']);
 					}
-
+					break;
 				default:
 					foreach ($tags[$tag] as $attr) {
 						if (isset($attrs[$attr])) {
