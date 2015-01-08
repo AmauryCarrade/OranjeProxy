@@ -603,7 +603,7 @@ do {
 	// SET REQUEST HEADERS
 	//
 	$_request_headers = '';
-	$_request_headers = $_request_method.' '.$_url_parts['path'];
+	$_request_headers = $_request_method.' '. urldecode( $_url_parts['path'] );
 
 	if (isset($_url_parts['query'])) {
 		$_request_headers .= '?';
