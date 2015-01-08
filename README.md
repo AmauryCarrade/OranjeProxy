@@ -10,6 +10,10 @@ Nota : le fichier « `oranjeproxy.svg` » n'est pas nécessaire, il est juste ut
 
 Second nota : la version [du Hollandais Volant](http://lehollandaisvolant.net/tout/oranjeproxy) est [cette version](https://github.com/Bubbendorf/OranjeProxy/tree/4b062ec29b9398b65d5bc078469badfde318ef5c).
 
+### CSS
+
+You can customize OranjeProxy's style by creating `user.css` in the same directory than your PHP file.
+
 ### Historique
 
 Cette version d'OranjeProxy est basée sur celle du [Hollandais Volant](http://lehollandaisvolant.net/tout/oranjeproxy/). Si on remonte dans le temps : 

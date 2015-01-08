@@ -493,6 +493,9 @@ function afficher_page_form($page) {
 .windows-popup { background-color: #C27D61; }
 .windows-popup p, .windows-popup form { margin: 5px; }' . "\n";
 	echo '</style>'."\n";
+	if( file_exists(__DIR__ . '/user.css') ) {
+		echo '<link rel="stylesheet" href="./user.css" media="screen" />';
+	}
 	echo '</head>'."\n";
 	echo '<body>'."\n";
 
@@ -998,7 +1001,7 @@ else {
 
 					if (!isset($attrs['method']) || strtolower(trim($attrs['method'])) === 'get') {
 						$extra_html = '<input type="hidden" name="' . '____pgfa' . '" value="' .complete_url($attrs['action'], false). '" />';
-						$attrs['action'] = 'index.php';
+						$attrs['action'] = '#';
 						$attrs['method'] = 'post';
 						break;
 					}
