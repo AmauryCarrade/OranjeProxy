@@ -139,7 +139,7 @@ $_http_s = ( (isset($_ENV['HTTPS']) and $_ENV['HTTPS'] == 'on') or $_SERVER['SER
 $_http_port = ($_SERVER['SERVER_PORT'] != 80 and $_SERVER['SERVER_PORT'] != 443 ? ':'.$_SERVER['SERVER_PORT'] : '');
 $_script_url = $_http_s.'://'.$_http_host.$_http_port.$_SERVER['PHP_SELF'];
 
-$_script_base  = substr($_script_url, 0, strrpos($_script_url, '/')+1);
+$_script_base  = substr($_SERVER["SCRIPT_NAME"], strrpos($_SERVER["SCRIPT_NAME"],"/")+1);
 
 /////////////////
 
