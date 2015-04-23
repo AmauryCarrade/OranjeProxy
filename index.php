@@ -1,26 +1,25 @@
 <?php
-
 /*
-	+-----------------+------------------------------------------------------------+
-	|  Script         | PHProxy   +   SabzProxy                                    |
-	|  Author         | Abdullah Arif                                              |
-	|  Modifier       | Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade   |
-	|  Last Modified  | 11:55 PM 26/03/2014                                        |
-	+-----------------+------------------------------------------------------------+
-	|  This program is free software; you can redistribute it and/or               |
-	|  modify it under the terms of the GNU General Public License                 |
-	|  as published by the Free Software Foundation; either version 2              |
-	|  of the License, or (at your option) any later version.                      |
-	|                                                                              |
-	|  This program is distributed in the hope that it will be useful,             |
-	|  but WITHOUT ANY WARRANTY; without even the implied warranty of              |
-	|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               |
-	|  GNU General Public License for more details.                                |
-	|                                                                              |
-	|  You should have received a copy of the GNU General Public License           |
-	|  along with this program; if not, write to the Free Software                 |
-	|  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. |
-	+------------------------------------------------------------------------------+
+	+-----------------------+-----------------------------------------------------------------------+
+	|  Script		|	PHProxy   +   SabzProxy						|
+	|  Author		|	Abdullah Arif							|
+	|  Modifier		|	Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade	|
+	|  Last Modified	|	11:55 PM 26/03/2014						|
+	+-----------------------+-----------------------------------------------------------------------+
+	|  This program is free software; you can redistribute it and/or				|
+	|  modify it under the terms of the GNU General Public License					|
+	|  as published by the Free Software Foundation; either version 2				|
+	|  of the License, or (at your option) any later version.					|
+	|												|
+	|  This program is distributed in the hope that it will be useful, 				|
+	|  but WITHOUT ANY WARRANTY; without even the implied warranty of				|
+	|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the				|
+	|  GNU General Public License for more details.							|
+	|												|
+	|  You should have received a copy of the GNU General Public License				|
+	|  along with this program; if not, write to the Free Software					|
+	|  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.			|
+	+-----------------------------------------------------------------------------------------------+
 */
 
 
@@ -36,15 +35,49 @@ $_flags = array (
 );
 
 
-// TODO : put these in GLOBALS LANG
-$_labels = array(
-	'remove_scripts' => array('Remove client-side scripting (I.E, Javascript)', 'Remove client-side scripting'), 
-	'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'), 
-	'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'), 
-	'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'), 
-	'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only ') 
-);
+// Languages
 
+function autoSelectLanguage($aLanguages, $sDefault = 'en')
+{
+	if(!empty($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+	{
+		$aBrowserLanguages = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE']);
+
+		foreach($aBrowserLanguages as $sBrowserLanguage)
+		{
+			$sLang = strtolower(substr($sBrowserLanguage, 0, 2));
+
+			if(in_array($sLang, $aLanguages))
+				return $sLang;
+		}
+	}
+
+	return $sDefault;
+}
+
+$language = autoSelectLanguage(array('en', 'fr'), 'en'); // NEED  es, it, de, cn
+
+if($language == 'fr')
+{
+	$_labels = array(
+		'remove_scripts' => array('Désactiver les scripts côté client (JavaScript)', 'Désactiver les scripts côté client (JavaScript)'), 
+		'accept_cookies' => array('Autoriser les cookies à être stockés', 'Autoriser les cookies à être stockés'), 
+		'show_referer' => array('Donner mon site référant aux sites internet', 'Donner mon site référant aux sites internet'), 
+		'base64_encode' => array('Utiliser l\'encodage en Base64 pour les adresses', 'Base64'), 
+		'session_cookies' => array('Garder les cookies pour cette session uniquement', 'Garder les cookies pour cette session uniquement') 
+	);
+}
+
+else
+{
+	$_labels = array(
+		'remove_scripts' => array('Remove client-side scripting (I.E, Javascript)', 'Remove client-side scripting'), 
+		'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'), 
+		'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'), 
+		'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'), 
+		'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only ') 
+	);
+}
 
 // Put here the hosts blacklisted by the server.
 // /!\ Parsed as a regular expression. Don't forget to escape characters.
@@ -57,7 +90,7 @@ $_hosts_blacklisted = array(
 // END CONFIGURABLE OPTIONS.
 //
 
-function vd($var) { var_dump($var); }
+function vd($var) { echo '<pre>'; var_dump($var); echo '</pre>'; }
 
 session_name('prx');
 session_start(); 
@@ -1185,3 +1218,4 @@ $_response_body = preg_replace('#<\s*body(.*?)>#si', "$0\n".'' , $_response_body
 $_response_body = preg_replace('#</\s*body>#si', ''."$0" , $_response_body);
 
 echo $_response_body;
+?>
