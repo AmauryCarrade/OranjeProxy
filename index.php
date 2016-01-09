@@ -1,5 +1,4 @@
 <?php
-
 /*
 	+-----------------+------------------------------------------------------------+
 	|  Script         | PHProxy   +   SabzProxy                                    |
@@ -23,6 +22,50 @@
 	+------------------------------------------------------------------------------+
 */
 
+// LANGUAGE
+//
+
+function language($sDefault = 'en')
+{
+	if(!empty($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+	{
+		$aBrowserLanguages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+
+		foreach($aBrowserLanguages as $sBrowserLanguage)
+		{
+			$sLang = strtolower(substr($sBrowserLanguage, 0, 2));
+
+			if(in_array($sLang, Array('fr', 'en')))
+				return $sLang;
+		}
+	}
+
+	else
+		return $sDefault;
+}
+
+if(language() == 'fr')
+{
+	$_labels = array(
+		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Remove client-side scripting'), 
+		'accept_cookies' => array('Autoriser les cookies a être stockés', 'Allow cookies to be stored'), 
+		'show_referer' => array('Envoyer le "referer" aux sites internet', 'Send my referer to the websites'), 
+		'base64_encode' => array('Utiliser l\'encodage Base64 pour les adresses', 'Base64'), 
+		'session_cookies' => array('Stocker les cookies pour cette session uniquement ', 'Store cookies for this session only ') 
+	);
+}
+
+elseif(language() == 'en')
+{
+	$_labels = array(
+		'remove_scripts' => array('Remove client-side scripting (I.E, JavaScript)', 'Remove client-side scripting'), 
+		'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'), 
+		'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'), 
+		'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'), 
+		'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only ') 
+	);
+}
+
 
 // CONFIGURABLE OPTIONS
 //
@@ -33,16 +76,6 @@ $_flags = array (
 	'accept_cookies'  => true,
 	'show_referer'    => true,
 	'session_cookies' => true
-);
-
-
-// TODO : put these in GLOBALS LANG
-$_labels = array(
-	'remove_scripts' => array('Remove client-side scripting (I.E, Javascript)', 'Remove client-side scripting'), 
-	'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'), 
-	'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'), 
-	'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'), 
-	'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only ') 
 );
 
 
