@@ -60,10 +60,10 @@ if(get_language() == 'fr')
 		'base64_encode' => array('Utiliser l\'encodage Base64 pour les URLs', 'Base64'),
 		'session_cookies' => array('Stocker les cookies pour cette session uniquement ', 'Store cookies for this session only '),
 		'home' => 'Accueil',
-		'gotothepage' => 'Aller à la page'
+		'gotothepage' => 'Aller à la page',
 
 		'error-url-blacklisted' => 'L\'URL est dans la liste noire du proxy. Veuillez entrer une autre URL.',
-		'error-cookie-disabled' => 'Les cookies sont désactivés pour ce site; ils sont nécessaires.",
+		'error-cookie-disabled' => 'Les cookies sont désactivés pour ce site; ils sont nécessaires.',
 		'error-url-malformed' => ' L\'URL que vous avez entrée est incorrect. Vérifiez que l\'URL est correcte.'
 	);
 }
@@ -80,7 +80,7 @@ else
 		'gotothepage' => 'Go to the page',
 
 		'error-url-blacklisted' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.',
-		'error-cookie-disabled' => 'Cookies are disabled for this website; they are required',
+		'error-cookie-disabled' => 'Cookies are disabled for this website; they are required.',
 		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.'
 	);
 }
