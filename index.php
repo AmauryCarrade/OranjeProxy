@@ -53,8 +53,8 @@ if(get_language() == 'fr')
 {
 	$_labels = array(
 		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Remove client-side scripting'),
-		'accept_cookies' => array('Autoriser les cookies a être stockés', 'Allow cookies to be stored'),
-		'show_referer' => array('Envoyer l\'adresse référante aux sites internet', 'Send my referer to the websites'),
+		'accept_cookies' => array('Autoriser les cookies à être stockés', 'Allow cookies to be stored'),
+		'show_referer' => array('Envoyer l\'URL référente aux sites internet', 'Send my referer to the websites'),
 		'base64_encode' => array('Utiliser l\'encodage Base64 pour les adresses', 'Base64'),
 		'session_cookies' => array('Stocker les cookies pour cette session uniquement ', 'Store cookies for this session only '),
 		'home' => 'Accueil',
@@ -71,7 +71,10 @@ else
 		'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'),
 		'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only '),
 		'home' => 'Home',
-		'gotothepage' => 'Go to the page'
+		'gotothepage' => 'Go to the page',
+
+		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.',
+		'error-url-blacklisted' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.'
 	);
 }
 
@@ -137,6 +140,7 @@ function XOREncryption($InputString, $KeyPhrase) {
 		$r = ord($InputString[$i]) xor ord($KeyPhrase[$rPos]); // Magic happens here:
 		$InputString[$i] = chr($r); // Replace characters
 	}
+
 	return $InputString;
 }
 
@@ -145,12 +149,14 @@ function XOREncryption($InputString, $KeyPhrase) {
 function XOREncrypt64($InputString, $KeyPhrase){
 	$InputString = XOREncryption($InputString, $KeyPhrase);
 	$InputString = base64_encode($InputString);
+
 	return $InputString;
 }
 
 function XORDecrypt64($InputString, $KeyPhrase){
 	$InputString = base64_decode($InputString);
 	$InputString = XOREncryption($InputString, $KeyPhrase);
+
 	return $InputString;
 }
 
@@ -158,8 +164,6 @@ function XORDecrypt64($InputString, $KeyPhrase){
 if (!isset($_SESSION['randomkey'])) {
   $_SESSION['randomkey'] = sha1(uniqid('',true) . '_' . mt_rand());
 }
-
-
 
 
 $_iflags = '';
@@ -182,7 +186,7 @@ $_http_s = ( (isset($_ENV['HTTPS']) and $_ENV['HTTPS'] == 'on') or $_SERVER['SER
 $_http_port = ($_SERVER['SERVER_PORT'] != 80 and $_SERVER['SERVER_PORT'] != 443 ? ':' . $_SERVER['SERVER_PORT'] : '');
 $_script_url = $_http_s . '://' . $_http_host.$_http_port.$_SERVER['PHP_SELF'];
 
-$_script_base  = substr($_SERVER["SCRIPT_NAME"], strrpos($_SERVER["SCRIPT_NAME"],"/")+1);
+$_script_base  = substr($_SERVER['SCRIPT_NAME'], strrpos($_SERVER['SCRIPT_NAME'],"/")+1);
 
 /////////////////
 
@@ -198,7 +202,7 @@ $_set_cookie = array();
 
 
 function add_cookie($name, $value, $expires = 0) {
-	return rawurlencode(rawurlencode($name)) . '=' . rawurlencode(rawurlencode($value)).(empty($expires) ? '' : '; expires=' . gmdate('D, d-M-Y H:i:s \G\M\T', $expires)) . '; path=/; domain= . ' . $GLOBALS['_http_host'];
+	return rawurlencode(rawurlencode($name)) . '=' . rawurlencode(rawurlencode($value)).(empty($expires) ? '' : '; expires=' . gmdate('D, d-M-Y H:i:s \G\M\T', $expires)) . '; path=/; domain=.' . $GLOBALS['_http_host'];
 }
 
 function set_post_vars($array, $parent_key = null) {
@@ -212,6 +216,7 @@ function set_post_vars($array, $parent_key = null) {
 			$temp[$key] = urlencode($value);
 		}
 	}
+
 	return $temp;
 }
 
@@ -226,6 +231,7 @@ function set_post_files($array, $parent_key = null) {
 			$temp[str_replace($m[0], $m[1], $key)][$m[2]] = $value;
 		}
 	}
+
 	return $temp;
 }
 
@@ -250,10 +256,10 @@ function url_parse($url, & $container) {
 		$temp['path'] = explode('/', $temp['path']);
 
 		foreach ($temp['path'] as $dir) {
-			if ($dir === ' .  . ') {
+			if ($dir === '..') {
 				array_pop($path); // permet de réduire le nombre de dossiers si on a un retour en haut=> /foo/../bar =>> /bar
 			}
-			elseif ($dir !== ' . ') {
+			elseif ($dir !== '.') {
 /*				$dir = rawurldecode($dir);
 				$count_i = strlen($dir);
 				// reconstruit le nom du dossier char par char (évite le genre de truc comme %20 dans les dossiers dâÃªtres parsÃ©s comme des sÃ©parateursâŠ)
@@ -269,10 +275,10 @@ function url_parse($url, & $container) {
 		}
 
 		$temp['path'] = '/' . ltrim(implode('/', $path), '/'); // supprime tous les '/' à gauche et en ajoute un seul : ///fol/file => /fol/file
-		$temp['file'] = substr($temp['path'], strrpos($temp['path'], '/')+1);
+		$temp['file'] = substr($temp['path'], strrpos($temp['path'], '/') + 1);
 		$temp['dir'] = substr($temp['path'], 0, strrpos($temp['path'], '/'));
 		$temp['base'] .= $temp['dir'];
-		$temp['prev_dir'] = substr_count($temp['path'], '/') > 1 ? substr($temp['base'], 0, strrpos($temp['base'], '/')+1) : $temp['base'] . '/';
+		$temp['prev_dir'] = substr_count($temp['path'], '/') > 1 ? substr($temp['base'], 0, strrpos($temp['base'], '/') + 1) : $temp['base'] . '/';
 		$container = $temp;
 
 		return true;
@@ -305,7 +311,7 @@ function complete_url($url, $proxify = true) {
 			case 'm':
 				if (substr($url, 0, 7) == 'mailto:') {
 					$proxify = false;
-						break;
+					break;
 				}
 			case 'j':
 				if (substr($url, 0, 11) == 'javascript:') {
@@ -329,6 +335,7 @@ function proxify_inline_css($css) {
 			$css = str_replace($matches[$i][0], 'url("' . proxify_css_url($matches[$i][2]) . '")', $css);
 		}
 	}
+
 	return $css;
 }
 
@@ -355,6 +362,7 @@ function proxify_css($css) {
 function proxify_css_url($url) {
 	$url = trim($url);
 	$delim = strpos($url, '"') === 0 ? '"' : (strpos($url, "'") === 0 ? "'" : '');
+
 	return $delim . preg_replace('#([\(\),\s\'"\\\])#', '\\$1', complete_url(trim(preg_replace('#\\\(.)#', '$1', trim($url, $delim))))) . $delim;
 }
 
@@ -366,6 +374,7 @@ if (isset($_POST[$q]) and !isset($_GET[$q]) and isset($_POST[$hl])) {
 	foreach ($_flags as $flag_name => $flag_value) {
 		$_iflags .= isset($_POST[$hl][$flag_name]) ? (string)(int)(bool)$_POST[$hl][$flag_name] : 0;
 	}
+
 	$_iflags = base_convert(($_iflags != '' ? $_iflags : '0'), 2, 16);
 }
 
@@ -392,6 +401,7 @@ if ($_iflags !== '') {
 function encode_url($url) {
 	$encrypted_url = XOREncrypt64($url,$_SESSION['randomkey']);
 	$hmac = hmacsha1( $_SESSION['randomkey'], $encrypted_url);
+
 	return rawurlencode($hmac.$encrypted_url);
 }
 
@@ -408,6 +418,7 @@ function decode_url($url) {
 
 	// Decrypt the URL
 	$cleartext_url = XORDecrypt64($encrypted_url, $_SESSION['randomkey']);
+
 	return str_replace(array('&amp;', '&#38;'), '&', $cleartext_url);
 }
 
@@ -417,12 +428,9 @@ function decode_url($url) {
 //
 
 function clean_txt($text) {
-	if (!get_magic_quotes_gpc()) {
-		$return = trim(addslashes($text));
-	} else {
-		$return = trim($text);
-	}
-return $return;
+	$return = !get_magic_quotes_gpc() ? trim(addslashes($text)) : trim($text);
+
+	return $return;
 }
 
 
@@ -435,14 +443,13 @@ function clean_txt_array($array) {
 			$array[$i] = clean_txt($key);
 		}
 	}
+
 	return $array;
 }
 
 $_GET = clean_txt_array($_GET);
 $_POST = clean_txt_array($_POST);
 $_COOKIE = clean_txt_array($_COOKIE);
-
-
 
 
 //
@@ -456,7 +463,7 @@ if (isset($_POST[$q]) && !isset($_GET[$q]) && !isset($_POST['____pgfa'])) {
 
 if (isset($_POST['____pgfa'])) {
 	$_url = ($_POST['____pgfa']);
-	$qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
+	$qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url) - 1 ? '' : '&') : '?';
 	$arr = explode('&', $_SERVER['QUERY_STRING']);
 
 	$getquery = "";
@@ -507,7 +514,7 @@ elseif (isset($_GET[$q])) {
 	if(strpos($_url, '?') === false && count($arrs) === 0) {
 		$qstr = '';
 	}
-	
+
 	$_url .= $qstr . implode('&', $arrs);
 }
 
@@ -528,12 +535,12 @@ function afficher_page_form($page) {
 	echo '	<meta name="robots" content="noindex, nofollow" />' . "\n";
 	echo '	<style type="text/css">' . "\n";
 
-	echo 'body { background:#FF5508; width: 100%; margin:0; padding:0; }
-#orpx_nav-bar { height: 72px; padding: 4px 0; margin: 0; text-align: center; border-bottom: 1px solid #755; color: #000; background-color: #FF9864; font-size: 12px; font-family: arial; }
+	echo 'body { background: #ff5508; width: 100%; margin: 0; padding: 0; }
+#orpx_nav-bar { height: 72px; padding: 4px 0; margin: 0; text-align: center; border-bottom: 1px solid #755; color: #000; background-color: #ff9864; font-size: 12px; font-family: Arial; }
 #orpx_nav-bar a { color: #000; }
 #orpx_nav-bar a:hover { color: #007744; }
-.windows-popup { background-color: #BF6464; border-top: 1px solid #44352C; border-bottom: 1px solid #44352C; clear: both; padding: 30px 0; text-align: center; margin-top: 152px; }
-.windows-popup { background-color: #C27D61; }
+.windows-popup { background-color: #bf6464; border-top: 1px solid #44352c; border-bottom: 1px solid #44352c; clear: both; padding: 30px 0; text-align: center; margin-top: 152px; }
+.windows-popup { background-color: #c27d61; }
 .windows-popup p, .windows-popup form { margin: 5px; }' . "\n";
 	echo '</style>' . "\n";
 	if( file_exists(__DIR__ . '/user.css') ) {
@@ -542,45 +549,43 @@ function afficher_page_form($page) {
 	echo '</head>' . "\n";
 	echo '<body>' . "\n";
 
-		echo '<div id="orpx_nav-bar" style="margin:0;">' . "\n";
-		echo '	<form method="post" action="' . $_SERVER['PHP_SELF'] . '" style="text-align:center">' . "\n";
-		echo '		<a href="' . $_SERVER['PHP_SELF'] . '">' . $GLOBALS['_labels']['home'] . '</a> — <a href="' . $url . '">' . $GLOBALS['_labels']['gotothepage'] . '</a><br />' . "\n";
-		echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="' . $url . '" />' . "\n";
-		echo '		<input type="submit" name="go" style="font-size: 12px;" value="Go to the site"/>' . "\n";
-		echo '		<br /><hr />' . "\n";
+	echo '<div id="orpx_nav-bar" style="margin:0;">' . "\n";
+	echo '	<form method="post" action="' . $_SERVER['PHP_SELF'] . '" style="text-align:center">' . "\n";
+	echo '		<a href="' . $_SERVER['PHP_SELF'] . '">' . $GLOBALS['_labels']['home'] . '</a> — <a href="' . $url . '">' . $GLOBALS['_labels']['gotothepage'] . '</a><br />' . "\n";
+	echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="' . $url . '" />' . "\n";
+	echo '		<input type="submit" name="go" style="font-size: 12px;" value="Go to the site"/>' . "\n";
+	echo '		<br /><hr />' . "\n";
 		
-		foreach ($GLOBALS['_flags'] as $flag_name => $flag_value) {
-			echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '[' . $flag_name . ']"' . ($flag_value == true ? ' checked="checked"' : '') . ' /> ' . $GLOBALS['_labels'][$flag_name][0] . '</label>' . "\n";
-		}
+	foreach ($GLOBALS['_flags'] as $flag_name => $flag_value) {
+		echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '[' . $flag_name . ']"' . ($flag_value == true ? ' checked="checked"' : '') . ' /> ' . $GLOBALS['_labels'][$flag_name][0] . '</label>' . "\n";
+	}
 
-		echo '	</form>' . "\n";
-		echo '</div>' . "\n";
+	echo '	</form>' . "\n";
+	echo '</div>' . "\n";
 		
-		echo '<div class="windows-popup" id="noCookies" style="display: none;">' . "\n";
-			echo 'Cookies are disabled for this website; they are required';
-		echo '</div>' . "\n";
+	echo '<div class="windows-popup" id="noCookies" style="display: none;">' . "\n";
+		echo 'Cookies are disabled for this website; they are required';
+	echo '</div>' . "\n";
 
 	if ($page['type'] == 'auth') {
-			echo '<div class="windows-popup" id="auth"><p><b>Enter your username and password for "' . htmlspecialchars($page['flag']) . '" on ' . $GLOBALS['_url_parts']['host'] . '</b>' . "\n";
-			echo '	<form method="post" action="#">' . "\n";
-			echo '		<input type="hidden" name="____pbavn" value="' . base64_encode($page['flag']) . '" />' . "\n";
-			echo '			<label>Username <input type="text" name="username" value="" /></label>' . "\n";
-			echo '			<label>Password<input type="password" name="password" value="" /></label>' . "\n";
-			echo '			<input type="submit" value="Login" />' . "\n";
-			echo '	</form>' . "\n";
-			echo '</div>' . "\n";
+		echo '<div class="windows-popup" id="auth"><p><b>Enter your username and password for "' . htmlspecialchars($page['flag']) . '" on ' . $GLOBALS['_url_parts']['host'] . '</b>' . "\n";
+		echo '	<form method="post" action="#">' . "\n";
+		echo '		<input type="hidden" name="____pbavn" value="' . base64_encode($page['flag']) . '" />' . "\n";
+		echo '			<label>Username <input type="text" name="username" value="" /></label>' . "\n";
+		echo '			<label>Password<input type="password" name="password" value="" /></label>' . "\n";
+		echo '			<input type="submit" value="Login" />' . "\n";
+		echo '	</form>' . "\n";
+		echo '</div>' . "\n";
 	}
 
 	if ($page['type'] == 'error') {
 		echo '<div class="windows-popup" id="error">' . "\n";
 			echo $page['flag'];
 		echo '</div>' . "\n";
-
-
 	}
-	
+
 	echo '<script type="text/javascript">' . "\n";
-	echo '	window.onload = function(e){ 
+	echo '	window.onload = function(e) { 
 		if(navigator.cookieEnabled == false) {
 			document.getElementById("noCookies").style.display = "block";
 		}
@@ -591,7 +596,6 @@ function afficher_page_form($page) {
 
 	exit;
 }
-
 
 
 $_basic_auth_realm = '';
@@ -617,15 +621,14 @@ if (url_parse($_url, $_url_parts)) {
 	if (!empty($_hosts_blacklisted)) {
 		foreach ($_hosts_blacklisted as $host) {
 			if (preg_match($host, $_url_parts['host'])) {
-				afficher_page_form(array('type' => 'error', 'flag' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL . '));
+				afficher_page_form(array('type' => 'error', 'flag' => $GLOBALS['_labels']['error-url-blacklisted']));
 			}
 		}
 	}
 }
 
 else {
-	afficher_page_form(array('type' => 'error', 'flag' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not . '));
-
+	afficher_page_form(array('type' => 'error', 'flag' => $GLOBALS['_labels']['error-url-malformed']));
 }
 
 
@@ -640,9 +643,10 @@ do {
 	$_socket = @fsockopen((($_url_parts['scheme'] === 'https' and $_system['ssl']) ? 'ssl://' : 'tcp://').$_url_parts['host'], $_url_parts['port'], $err_no, $err_str, 10);
 
 	if ($_socket === FALSE) {
-		afficher_page_form(array('type' => 'error', 'flag' => 'It was not possible to reach the server at <strong>' . $_url . '</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. ' . htmlspecialchars($err_no) . ': ' . htmlspecialchars($err_str) . ' . </small>'));
+		// à traduire
+		afficher_page_form(array('type' => 'error', 'flag' => 'It was not possible to reach the server at <strong>' . $_url . '</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. ' . htmlspecialchars($err_no) . ': ' . htmlspecialchars($err_str) . '.</small>'));
 	}
-	
+
 	//
 	// SET REQUEST HEADERS
 	//
@@ -652,7 +656,9 @@ do {
 	if (isset($_url_parts['query'])) {
 		$_request_headers .= '?';
 		$query = preg_split('#([&;])#', $_url_parts['query'], -1, PREG_SPLIT_DELIM_CAPTURE);
-		for ($i = 0, $count = count($query); $i < $count; $_request_headers .= implode('=', array_map('urlencode', array_map('urldecode', explode('=', $query[$i])))) . (isset($query[++$i]) ? $query[$i] : ''), $i++);
+		for ($i = 0, $count = count($query);
+		$i < $count;
+		$_request_headers .= implode('=', array_map('urlencode', array_map('urldecode', explode('=', $query[$i])))) . (isset($query[++$i]) ? $query[$i] : ''), $i++);
 	}
 
 	$_request_headers .= " HTTP/1.0\r\n";
@@ -661,12 +667,14 @@ do {
 	if (isset($_SERVER['HTTP_USER_AGENT'])) {
 		$_request_headers .= 'User-Agent: ' . $_SERVER['HTTP_USER_AGENT']."\r\n";
 	}
+
 	if (isset($_SERVER['HTTP_ACCEPT'])) {
 		$_request_headers .= 'Accept: ' . $_SERVER['HTTP_ACCEPT']."\r\n";
 	}
 	else {
 		$_request_headers .= "Accept: */*;q=0.1\r\n";
 	}
+
 	if ($_flags['show_referer'] and isset($_SERVER['HTTP_REFERER']) and preg_match('#^\Q' . $_script_url . '?' . $q . '=\E([^&]+)#', $_SERVER['HTTP_REFERER'], $matches)) {
 		$_request_headers .= 'Referer: ' . decode_url($matches[1]) . "\r\n";
 	}
@@ -680,13 +688,13 @@ do {
 			$cookie_content = explode(';', rawurldecode($cookie_content));
 
 			if ($cookie_id[0] === 'COOKIE') {
-				$cookie_id[3] = str_replace('_', ' . ', $cookie_id[3]); //stupid PHP can't have dots in var names
+				$cookie_id[3] = str_replace('_', '.', $cookie_id[3]); //stupid PHP can't have dots in var names
 
 				if (count($cookie_id) < 4 || ($cookie_content[1] == 'secure' && $_url_parts['scheme'] != 'https')) {
 					continue;
 				}
 
-				if ((preg_match('#\Q' . $cookie_id[3] . '\E$#i', $_url_parts['host']) || strtolower($cookie_id[3]) == strtolower(' . ' . $_url_parts['host'])) && preg_match('#^\Q' . $cookie_id[2] . '\E#', $_url_parts['path'])) {
+				if ((preg_match('#\Q' . $cookie_id[3] . '\E$#i', $_url_parts['host']) || strtolower($cookie_id[3]) == strtolower('.' . $_url_parts['host'])) && preg_match('#^\Q' . $cookie_id[2] . '\E#', $_url_parts['path'])) {
 					$_cookie .= ($_cookie != '' ? '; ' : '') . (empty($cookie_id[1]) ? '' : $cookie_id[1] . '=') . $cookie_content[0];
 				}
 			}
@@ -758,6 +766,7 @@ do {
 				$_post_body .= !empty($_post_body) ? '&' : '';
 				$_post_body .= $key . '=' . $value;
 			}
+
 			$_request_headers .= "Content-Type: application/x-www-form-urlencoded\r\n";
 			$_request_headers .= "Content-Length: " . strlen($_post_body) . "\r\n\r\n";
 			$_request_headers .= $_post_body;
@@ -816,10 +825,10 @@ do {
 			$name = $value = $expires = $path = $domain = $secure = $expires_time = '';
 
 			preg_match('#^\s*([^=;,\s]*)\s*=?\s*([^;]*)#',	$cookie, $match) and list(, $name, $value)	= $match;
-			preg_match('#;\s*expires\s*=\s*([^;]*)#i',		$cookie, $match) and list(, $expires)		= $match;
-			preg_match('#;\s*path\s*=\s*([^;,\s]*)#i',		$cookie, $match) and list(, $path)		= $match;
-			preg_match('#;\s*domain\s*=\s*([^;,\s]*)#i',		$cookie, $match) and list(, $domain)		= $match;
-			preg_match('#;\s*(secure\b)#i',				$cookie, $match) and list(, $secure)		= $match;
+			preg_match('#;\s*expires\s*=\s*([^;]*)#i',	$cookie, $match) and list(, $expires)		= $match;
+			preg_match('#;\s*path\s*=\s*([^;,\s]*)#i',	$cookie, $match) and list(, $path)		= $match;
+			preg_match('#;\s*domain\s*=\s*([^;,\s]*)#i',	$cookie, $match) and list(, $domain)		= $match;
+			preg_match('#;\s*(secure\b)#i',			$cookie, $match) and list(, $secure)		= $match;
 
 			$expires_time = empty($expires) ? 0 : intval(@strtotime($expires));
 			$expires = ($_flags['session_cookies'] and !empty($expires) and time()-$expires_time < 0) ? '' : $expires;
@@ -830,8 +839,8 @@ do {
 			}
 
 			else {
-				$domain = ' . ' . strtolower(str_replace(' .  . ', ' . ', trim($domain, ' . ')));
-				if ((!preg_match('#\Q' . $domain . '\E$#i', $_url_parts['host']) and $domain != ' . ' . $_url_parts['host']) || (substr_count($domain, ' . ') < 2 and $domain{0} == ' . ')) {
+				$domain = '.' . strtolower(str_replace('..', '.', trim($domain, '.')));
+				if ((!preg_match('#\Q' . $domain . '\E$#i', $_url_parts['host']) and $domain != '.' . $_url_parts['host']) || (substr_count($domain, '.') < 2 and $domain{0} == '.')) {
 					continue;
 				}
 			}
@@ -919,13 +928,14 @@ if (!isset($_proxify[$_content_type])) {
 		$data = fread($_socket, 8192);
 		echo $data;
 	}
+
 	while (isset($data{0}));
 
 	fclose($_socket);
 	exit;
 }
 
-$_response_body ='';
+$_response_body = '';
 do {
 	$data = @fread($_socket, 8192); // silenced to avoid the "normal" warning by a faulty SSL connection
 	$_response_body .= $data;
@@ -934,6 +944,7 @@ while (isset($data{0}));
 
 unset($data);
 fclose($_socket);
+
 
 //
 // MODIFY AND DUMP RESOURCE
@@ -956,13 +967,13 @@ else {
 	//
 
 	$tags = array(
-			'a'				=> array('href'),
+			'a'			=> array('href'),
 			'applet'		=> array('codebase', 'code', 'object', 'archive'),
 			'area'			=> array('href'),
 			'audio'			=> array('src'),
 			'base'			=> array('href'),
 			'bgsound'		=> array('src'),
-			'blockquote'	=> array('cite'),
+			'blockquote'		=> array('cite'),
 			'body'			=> array('background'),
 			'del'			=> array('cite'),
 			'embed'			=> array('src'),
@@ -980,7 +991,7 @@ else {
 			'form'			=> array('action'),
 			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
 			'param'			=> array('value'),
-			'q'				=> array('cite'),
+			'q'			=> array('cite'),
 			'script'		=> array('src'),
 			'table'			=> array('background'),
 			'td'			=> array('background'),
@@ -1186,9 +1197,9 @@ else {
 
 	if (!isset($_GET['noform']))
 	{
-		$_url_form = '<div style="border-radius: 0 0 30px 0; top:-110px; height: 140px; width:500px; left:-470px; overflow: hidden; padding:4px; text-align:center; border-bottom:1px solid #755; color:#000; background-color:#FF9864; font-size:12px;z-index:2147483647; position:fixed; text-shadow:none;" onmouseover="this.style.top=\'0px\'; this.style.width=\'100%\'; this.style.left=\'0px\'" onmouseout="this.style.top=\'-110px\'; this.style.width=\'500px\'; this.style.left=\'-470px\'">' . "\n";
+		$_url_form = '<div style="border-radius: 0 0 30px 0; top:-110px; height: 140px; width: 500px; left: -470px; overflow: hidden; padding: 4px; text-align: center; border-bottom: 1px solid #755; color: #000; background-color: #ff9864; font-size: 12px; z-index: 2147483647; position:fixed; text-shadow: none;" onmouseover="this.style.top=\'0px\'; this.style.width=\'100%\'; this.style.left=\'0px\'" onmouseout="this.style.top=\'-110px\'; this.style.width=\'500px\'; this.style.left=\'-470px\'">' . "\n";
 		$_url_form .= '<form method="post" action="' . $_script_url . '" style="text-align:center">' . "\n";
-		$_url_form .= '<a style="color:#000;text-shadow:none;" href="' . $_script_base . '">' . $GLOBALS['_labels']['home'] . '</a> — <a style="color:#000;text-shadow:none;" href="' . $_url . '">' . $GLOBALS['_labels']['gotothepage'] . '</a><br />';
+		$_url_form .= '<a style="color: #000; text-shadow: none;" href="' . $_script_base . '">' . $GLOBALS['_labels']['home'] . '</a> — <a style="color: #000;text-shadow: none;" href="' . $_url . '">' . $GLOBALS['_labels']['gotothepage'] . '</a><br />';
 		$_url_form .= '<input type="text" size="80" name="' . $q . '" value="' . $_url . '" />';
 		$_url_form .= '<input type="submit" name="go" style="font-size: 12px;" value="GO"/>';
 		$_url_form .= '<br /><hr />';
