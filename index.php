@@ -25,15 +25,7 @@
 // LANGUAGE
 //
 
-// Please, if you want translate it, add same english & french, Russian > "ru", Spain > "es")
-// Find all identification codes here : http://www.metamodpro.com/browser-language-codes
-
-$accepted_languages = array(
-				'en',	// English
-				'fr'	// French
-			);
-
-function get_language($sDefault = 'en')
+function get_language($accepted_languages, $sDefault = 'en')
 {
 	if(!empty($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 	{
@@ -50,6 +42,13 @@ function get_language($sDefault = 'en')
 
 	return $sDefault;
 }
+
+// Please, if you want translate it, add same english & french, Russian > "ru", Spain > "es")
+// Find all identification codes here : http://www.metamodpro.com/browser-language-codes
+$accepted_languages = array(
+				'en',	// English
+				'fr'	// French
+			);
 
 $language = get_language();
 
