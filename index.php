@@ -55,10 +55,13 @@ if(get_language() == 'fr')
 		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Remove client-side scripting'),
 		'accept_cookies' => array('Autoriser les cookies à être stockés', 'Allow cookies to be stored'),
 		'show_referer' => array('Envoyer l\'URL référente aux sites internet', 'Send my referer to the websites'),
-		'base64_encode' => array('Utiliser l\'encodage Base64 pour les adresses', 'Base64'),
+		'base64_encode' => array('Utiliser l\'encodage Base64 pour les URLs', 'Base64'),
 		'session_cookies' => array('Stocker les cookies pour cette session uniquement ', 'Store cookies for this session only '),
 		'home' => 'Accueil',
 		'gotothepage' => 'Aller à la page'
+
+		'error-url-malformed' => ' L\'URL que vous avez entrée est incorrect. Vérifiez que l\'URL est correcte.',
+		'error-url-blacklisted' => 'L\'URL est dans la liste noire du proxy. Veuillez entrer une autre URL.'
 	);
 }
 
