@@ -1,27 +1,79 @@
 <?php
-
 /*
-	+-----------------+------------------------------------------------------------+
-	|  Script         | PHProxy   +   SabzProxy                                    |
-	|  Author         | Abdullah Arif                                              |
-	|  Modifier       | Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade   |
-	|  Last Modified  | 11:55 PM 26/03/2014                                        |
-	+-----------------+------------------------------------------------------------+
-	|  This program is free software; you can redistribute it and/or               |
-	|  modify it under the terms of the GNU General Public License                 |
-	|  as published by the Free Software Foundation; either version 2              |
-	|  of the License, or (at your option) any later version.                      |
-	|                                                                              |
-	|  This program is distributed in the hope that it will be useful,             |
-	|  but WITHOUT ANY WARRANTY; without even the implied warranty of              |
-	|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               |
-	|  GNU General Public License for more details.                                |
-	|                                                                              |
-	|  You should have received a copy of the GNU General Public License           |
-	|  along with this program; if not, write to the Free Software                 |
-	|  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. |
-	+------------------------------------------------------------------------------+
+	+-------------------+-----------------------------------------------------------+
+	|  Script			| PHProxy   +   SabzProxy							|
+	|  Author			| Abdullah Arif									|
+	|  Modifier		| Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade	|
+	|  Last Modified	| 11:55 PM 26/03/2014								|
+	+-------------------+-----------------------------------------------------------+
+	|  This program is free software; you can redistribute it and/or				|
+	|  modify it under the terms of the GNU General Public License				|
+	|  as published by the Free Software Foundation; either version 2			|
+	|  of the License, or (at your option) any later version.					|
+	|																|
+	|  This program is distributed in the hope that it will be useful,			|
+	|  but WITHOUT ANY WARRANTY; without even the implied warranty of			|
+	|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the				|
+	|  GNU General Public License for more details.							|
+	|																|
+	|  You should have received a copy of the GNU General Public License			|
+	|  along with this program; if not, write to the Free Software				|
+	|  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.	|
+	+-------------------------------------------------------------------------------+
 */
+
+// LANGUAGE
+//
+
+// add es for spain, ru for russian...etc
+$language_acceppted = Array('en', 'fr');
+
+function get_language($sDefault = 'en')
+{
+	if(!empty($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+	{
+		$aBrowserLanguages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+		foreach($aBrowserLanguages as $sBrowserLanguage)
+		{
+			$sLang = strtolower(substr($sBrowserLanguage, 0, 2));
+
+			if(in_array($sLang, Array('fr', 'en')))
+				return $sLang;
+
+			else
+				return $sDefault;
+		}
+	}
+
+	else
+		return $sDefault;
+}
+
+if(get_language() == 'fr')
+{
+	$_labels = array(
+		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Remove client-side scripting'),
+		'accept_cookies' => array('Autoriser les cookies a être stockés', 'Allow cookies to be stored'),
+		'show_referer' => array('Envoyer l\'adresse référante aux sites internet', 'Send my referer to the websites'),
+		'base64_encode' => array('Utiliser l\'encodage Base64 pour les adresses', 'Base64'),
+		'session_cookies' => array('Stocker les cookies pour cette session uniquement ', 'Store cookies for this session only '),
+		'home' => 'Accueil',
+		'gotothepage' => 'Aller à la page'
+	);
+}
+
+else
+{
+	$_labels = array(
+		'remove_scripts' => array('Remove client-side scripting (I.E, JavaScript)', 'Remove client-side scripting'),
+		'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'),
+		'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'),
+		'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'),
+		'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only '),
+		'home' => 'Home',
+		'gotothepage' => 'Go to the page'
+	);
+}
 
 
 // CONFIGURABLE OPTIONS
@@ -29,20 +81,11 @@
 
 // Default values
 $_flags = array (
-	'remove_scripts'  => false,
-	'accept_cookies'  => true,
-	'show_referer'    => true,
-	'session_cookies' => true
-);
-
-
-// TODO : put these in GLOBALS LANG
-$_labels = array(
-	'remove_scripts' => array('Remove client-side scripting (I.E, Javascript)', 'Remove client-side scripting'), 
-	'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'), 
-	'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'), 
-	'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'), 
-	'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only ') 
+	'remove_scripts'	=> false,
+	'accept_cookies'	=> true,
+	'show_referer'		=> true,
+	'base64_encode'	=> true,
+	'session_cookies'	=> true
 );
 
 
@@ -113,7 +156,7 @@ function XORDecrypt64($InputString, $KeyPhrase){
 
 
 if (!isset($_SESSION['randomkey'])) {
-  $_SESSION['randomkey'] = sha1(uniqid('',true).'_'.mt_rand());
+  $_SESSION['randomkey'] = sha1(uniqid('',true) . '_' . mt_rand());
 }
 
 
@@ -136,8 +179,8 @@ $_proxify = array(
 
 $_http_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost');
 $_http_s = ( (isset($_ENV['HTTPS']) and $_ENV['HTTPS'] == 'on') or $_SERVER['SERVER_PORT'] == 443) ? 'https' : 'http';
-$_http_port = ($_SERVER['SERVER_PORT'] != 80 and $_SERVER['SERVER_PORT'] != 443 ? ':'.$_SERVER['SERVER_PORT'] : '');
-$_script_url = $_http_s.'://'.$_http_host.$_http_port.$_SERVER['PHP_SELF'];
+$_http_port = ($_SERVER['SERVER_PORT'] != 80 and $_SERVER['SERVER_PORT'] != 443 ? ':' . $_SERVER['SERVER_PORT'] : '');
+$_script_url = $_http_s . '://' . $_http_host.$_http_port.$_SERVER['PHP_SELF'];
 
 $_script_base  = substr($_SERVER["SCRIPT_NAME"], strrpos($_SERVER["SCRIPT_NAME"],"/")+1);
 
@@ -155,7 +198,7 @@ $_set_cookie = array();
 
 
 function add_cookie($name, $value, $expires = 0) {
-	return rawurlencode(rawurlencode($name)).'='.rawurlencode(rawurlencode($value)).(empty($expires) ? '' : '; expires=' . gmdate('D, d-M-Y H:i:s \G\M\T', $expires)) . '; path=/; domain=.' . $GLOBALS['_http_host'];
+	return rawurlencode(rawurlencode($name)) . '=' . rawurlencode(rawurlencode($value)).(empty($expires) ? '' : '; expires=' . gmdate('D, d-M-Y H:i:s \G\M\T', $expires)) . '; path=/; domain= . ' . $GLOBALS['_http_host'];
 }
 
 function set_post_vars($array, $parent_key = null) {
@@ -191,7 +234,7 @@ function url_parse($url, & $container) {
 
 	if (!empty($temp)) {
 		$temp['port_ext'] = '';
-		$temp['base'] = $temp['scheme'].'://'.$temp['host'];
+		$temp['base'] = $temp['scheme'] . '://' . $temp['host'];
 
 		// ajoute le port si donné
 		if (isset($temp['port'])) {
@@ -207,10 +250,10 @@ function url_parse($url, & $container) {
 		$temp['path'] = explode('/', $temp['path']);
 
 		foreach ($temp['path'] as $dir) {
-			if ($dir === '..') {
+			if ($dir === ' .  . ') {
 				array_pop($path); // permet de réduire le nombre de dossiers si on a un retour en haut=> /foo/../bar =>> /bar
 			}
-			elseif ($dir !== '.') {
+			elseif ($dir !== ' . ') {
 /*				$dir = rawurldecode($dir);
 				$count_i = strlen($dir);
 				// reconstruit le nom du dossier char par char (évite le genre de truc comme %20 dans les dossiers dâÃªtres parsÃ©s comme des sÃ©parateursâŠ)
@@ -225,7 +268,7 @@ function url_parse($url, & $container) {
 			}
 		}
 
-		$temp['path'] = '/'.ltrim(implode('/', $path), '/'); // supprime tous les '/' à gauche et en ajoute un seul : ///fol/file => /fol/file
+		$temp['path'] = '/' . ltrim(implode('/', $path), '/'); // supprime tous les '/' à gauche et en ajoute un seul : ///fol/file => /fol/file
 		$temp['file'] = substr($temp['path'], strrpos($temp['path'], '/')+1);
 		$temp['dir'] = substr($temp['path'], 0, strrpos($temp['path'], '/'));
 		$temp['base'] .= $temp['dir'];
@@ -262,13 +305,13 @@ function complete_url($url, $proxify = true) {
 			case 'm':
 				if (substr($url, 0, 7) == 'mailto:') {
 					$proxify = false;
-          				break;
-        			}
-      			case 'j':
-        			if (substr($url, 0, 11) == 'javascript:') {
-          				$proxify = false;
-          				break;
-       				}
+						break;
+				}
+			case 'j':
+				if (substr($url, 0, 11) == 'javascript:') {
+					$proxify = false;
+					break;
+				}
 			default:
 				$url = $GLOBALS['_base']['base'] . '/' . $url;
 				break;
@@ -282,7 +325,7 @@ function complete_url($url, $proxify = true) {
 function proxify_inline_css($css) {
 	preg_match_all('#url\s{0,}\(("|\')?([^\'")]{1,})(\'|")?\)#i', $css, $matches, PREG_SET_ORDER);
 	for ($i = 0, $count = count($matches); $i < $count; ++$i) {
-      if (!preg_match('#^data:#', $matches[$i][2])) {
+	if (!preg_match('#^data:#', $matches[$i][2])) {
 			$css = str_replace($matches[$i][0], 'url("' . proxify_css_url($matches[$i][2]) . '")', $css);
 		}
 	}
@@ -407,7 +450,7 @@ $_COOKIE = clean_txt_array($_COOKIE);
 //
 
 if (isset($_POST[$q]) && !isset($_GET[$q]) && !isset($_POST['____pgfa'])) {
-	header('Location: '.$_script_url.'?'.$q.'='.encode_url($_POST[$q]).'&'.$hl.'='.base_convert($_iflags, 2, 16));
+	header('Location: ' . $_script_url . '?' . $q . '=' . encode_url($_POST[$q]) . '&' . $hl . '=' . base_convert($_iflags, 2, 16));
 	exit(0);
 }
 
@@ -436,28 +479,28 @@ if (isset($_POST['____pgfa'])) {
 }
 
 elseif (isset($_GET[$q])) {
-    $_url  = decode_url($_GET[$q]);
-    
-    // If the request have already some arguments, a & must be used to add new ones. Else, we need a ?.
-    // The sign to use is stored here.
-    $qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
-    
-    $arrs = explode('&', $_SERVER['QUERY_STRING']);
-    
-    // Length of the names of the arguments to remove ($q & $hl), plus one to take the "=" sign into account.
-    // Used a few lines later to extract these.
-    $lenQ = strlen($q) + 1;
-    $lenHL = strlen($hl) + 1;
+	$_url  = decode_url($_GET[$q]);
 
-    foreach($arrs AS $key => $arr) {
-	    // $q
-	    if(substr($arr, 0, $lenQ) == $q + '=') {
+	// If the request have already some arguments, a & must be used to add new ones. Else, we need a ?.
+	// The sign to use is stored here.
+	$qstr = strpos($_url, '?') !== false ? (strpos($_url, '?') === strlen($_url)-1 ? '' : '&') : '?';
+
+	$arrs = explode('&', $_SERVER['QUERY_STRING']);
+
+	// Length of the names of the arguments to remove ($q & $hl), plus one to take the "=" sign into account.
+	// Used a few lines later to extract these.
+	$lenQ = strlen($q) + 1;
+	$lenHL = strlen($hl) + 1;
+
+	foreach($arrs AS $key => $arr) {
+		// $q
+		if(substr($arr, 0, $lenQ) == $q + '=') {
 			unset($arrs[$key]);
-	    }
-	    // $hl
-	    if(substr($arr, 0, $lenHL) == $hl + '=') {
+		}
+		// $hl
+		if(substr($arr, 0, $lenHL) == $hl + '=') {
 			unset($arrs[$key]);
-	    }
+		}
 	}
 	
 	// Is a "?" needed?
@@ -476,63 +519,62 @@ else {
 function afficher_page_form($page) {
 	$url = isset($GLOBALS['_url']) ? htmlspecialchars($GLOBALS['_url']) : '';
 
-	echo '<!DOCTYPE html>'."\n";
-	echo '<html>'."\n";
-	echo '<head>'."\n";
-	echo '	<meta charset="utf-8" />'."\n";
-	echo '  <link rel="shortcut icon" href="data:image/png;base64,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" />' . "\n";
-	echo '	<title>OranjeProxy</title>'."\n";
-	echo '	<meta name="robots" content="noindex, nofollow" />'."\n";
-	echo '<style type="text/css">'."\n";
+	echo '<!DOCTYPE html>' . "\n";
+	echo '<html>' . "\n";
+	echo '<head>' . "\n";
+	echo '	<meta charset="utf-8" />' . "\n";
+	echo '	<link rel="shortcut icon" href="data:image/png;base64,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" />' . "\n";
+	echo '	<title>OranjeProxy</title>' . "\n";
+	echo '	<meta name="robots" content="noindex, nofollow" />' . "\n";
+	echo '	<style type="text/css">' . "\n";
 
 	echo 'body { background:#FF5508; width: 100%; margin:0; padding:0; }
-#orpx_nav-bar { height: 72px; padding: 4px 0; margin: 0; text-align: center; border-bottom: 1px solid #755; color: #000; background-color: #FF9864; font-size: 12px; }
+#orpx_nav-bar { height: 72px; padding: 4px 0; margin: 0; text-align: center; border-bottom: 1px solid #755; color: #000; background-color: #FF9864; font-size: 12px; font-family: arial; }
 #orpx_nav-bar a { color: #000; }
 #orpx_nav-bar a:hover { color: #007744; }
 .windows-popup { background-color: #BF6464; border-top: 1px solid #44352C; border-bottom: 1px solid #44352C; clear: both; padding: 30px 0; text-align: center; margin-top: 152px; }
 .windows-popup { background-color: #C27D61; }
 .windows-popup p, .windows-popup form { margin: 5px; }' . "\n";
-	echo '</style>'."\n";
+	echo '</style>' . "\n";
 	if( file_exists(__DIR__ . '/user.css') ) {
 		echo '<link rel="stylesheet" href="./user.css" media="screen" />';
 	}
-	echo '</head>'."\n";
-	echo '<body>'."\n";
+	echo '</head>' . "\n";
+	echo '<body>' . "\n";
 
-		echo '<div id="orpx_nav-bar" style="margin:0;">'."\n";
-		echo '	<form method="post" action="'.$_SERVER['PHP_SELF'].'" style="text-align:center">'."\n";
-		echo '		<a href="'.$_SERVER['PHP_SELF'].'">Home</a> — <a href="'.$url.'">Go to the page</a><br/>'."\n";
-		echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="'.$url.'" />'."\n";
-		echo '		<input type="submit" name="go" style="font-size: 12px;" value="Go to the site"/>'."\n";
-		echo '		<br/><hr/>'."\n";
+		echo '<div id="orpx_nav-bar" style="margin:0;">' . "\n";
+		echo '	<form method="post" action="' . $_SERVER['PHP_SELF'] . '" style="text-align:center">' . "\n";
+		echo '		<a href="' . $_SERVER['PHP_SELF'] . '">' . $GLOBALS['_labels']['home'] . '</a> — <a href="' . $url . '">' . $GLOBALS['_labels']['gotothepage'] . '</a><br />' . "\n";
+		echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="' . $url . '" />' . "\n";
+		echo '		<input type="submit" name="go" style="font-size: 12px;" value="Go to the site"/>' . "\n";
+		echo '		<br /><hr />' . "\n";
 		
 		foreach ($GLOBALS['_flags'] as $flag_name => $flag_value) {
-			echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '['.$flag_name . ']"'.($flag_value == true ? ' checked="checked"' : '').' /> '.$GLOBALS['_labels'][$flag_name][0].'</label>'."\n";
+			echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '[' . $flag_name . ']"' . ($flag_value == true ? ' checked="checked"' : '') . ' /> ' . $GLOBALS['_labels'][$flag_name][0] . '</label>' . "\n";
 		}
 
-		echo '	</form>'."\n";
-		echo '</div>'."\n";
+		echo '	</form>' . "\n";
+		echo '</div>' . "\n";
 		
-		echo '<div class="windows-popup" id="noCookies" style="display: none;">'."\n";
+		echo '<div class="windows-popup" id="noCookies" style="display: none;">' . "\n";
 			echo 'Cookies are disabled for this website; they are required';
-		echo '</div>'."\n";
-
+		echo '</div>' . "\n";
 
 	if ($page['type'] == 'auth') {
-			echo '<div class="windows-popup" id="auth"><p><b>Enter your username and password for "'.htmlspecialchars($page['flag']).'" on '.$GLOBALS['_url_parts']['host'].'</b>'."\n";
-			echo '	<form method="post" action="#">'."\n";
-			echo '		<input type="hidden" name="____pbavn" value="'.base64_encode($page['flag']).'" />'."\n";
-			echo '			<label>Username <input type="text" name="username" value="" /></label>'."\n";
-			echo '			<label>Password<input type="password" name="password" value="" /></label>'."\n";
-			echo '			<input type="submit" value="Login" />'."\n";
-			echo '	</form>'."\n";
-			echo '</div>'."\n";
+			echo '<div class="windows-popup" id="auth"><p><b>Enter your username and password for "' . htmlspecialchars($page['flag']) . '" on ' . $GLOBALS['_url_parts']['host'] . '</b>' . "\n";
+			echo '	<form method="post" action="#">' . "\n";
+			echo '		<input type="hidden" name="____pbavn" value="' . base64_encode($page['flag']) . '" />' . "\n";
+			echo '			<label>Username <input type="text" name="username" value="" /></label>' . "\n";
+			echo '			<label>Password<input type="password" name="password" value="" /></label>' . "\n";
+			echo '			<input type="submit" value="Login" />' . "\n";
+			echo '	</form>' . "\n";
+			echo '</div>' . "\n";
 	}
 
 	if ($page['type'] == 'error') {
-		echo '<div class="windows-popup" id="error">'."\n";
+		echo '<div class="windows-popup" id="error">' . "\n";
 			echo $page['flag'];
-		echo '</div>'."\n";
+		echo '</div>' . "\n";
 
 
 	}
@@ -543,10 +585,9 @@ function afficher_page_form($page) {
 			document.getElementById("noCookies").style.display = "block";
 		}
 	}' . "\n";
-    echo '</script>' . "\n";
-	echo '</body>'."\n";
-	echo '</html>'."\n";
-
+	echo '</script>' . "\n";
+	echo '</body>' . "\n";
+	echo '</html>' . "\n";
 
 	exit;
 }
@@ -558,7 +599,7 @@ $_basic_auth_header = '';
 if (isset($_GET[$q], $_POST['____pbavn'], $_POST['username'], $_POST['password'])) {
 	$_request_method = 'GET';
 	$_basic_auth_realm = base64_decode($_POST['____pbavn']);
-	$_basic_auth_header = base64_encode($_POST['username'] . ':' . $_POST['password']);
+	$_basic_auth_header = base64_encode($_POST['username'] . ' : ' . $_POST['password']);
 }
 
 //
@@ -576,14 +617,14 @@ if (url_parse($_url, $_url_parts)) {
 	if (!empty($_hosts_blacklisted)) {
 		foreach ($_hosts_blacklisted as $host) {
 			if (preg_match($host, $_url_parts['host'])) {
-				afficher_page_form(array('type' => 'error', 'flag' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.'));
+				afficher_page_form(array('type' => 'error', 'flag' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL . '));
 			}
 		}
 	}
 }
 
 else {
-	afficher_page_form(array('type' => 'error', 'flag' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.'));
+	afficher_page_form(array('type' => 'error', 'flag' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not . '));
 
 }
 
@@ -599,14 +640,14 @@ do {
 	$_socket = @fsockopen((($_url_parts['scheme'] === 'https' and $_system['ssl']) ? 'ssl://' : 'tcp://').$_url_parts['host'], $_url_parts['port'], $err_no, $err_str, 10);
 
 	if ($_socket === FALSE) {
-		afficher_page_form(array('type' => 'error', 'flag' => 'It was not possible to reach the server at <strong>' . $_url . '</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. ' . htmlspecialchars($err_no) . ': '.htmlspecialchars($err_str) . '.</small>'));
+		afficher_page_form(array('type' => 'error', 'flag' => 'It was not possible to reach the server at <strong>' . $_url . '</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. ' . htmlspecialchars($err_no) . ': ' . htmlspecialchars($err_str) . ' . </small>'));
 	}
 	
 	//
 	// SET REQUEST HEADERS
 	//
 	$_request_headers = '';
-	$_request_headers = $_request_method.' '. urldecode( $_url_parts['path'] );
+	$_request_headers = $_request_method . ' ' .  urldecode( $_url_parts['path'] );
 
 	if (isset($_url_parts['query'])) {
 		$_request_headers .= '?';
@@ -618,10 +659,10 @@ do {
 	$_request_headers .= 'Host: ' . $_url_parts['host'] . $_url_parts['port_ext'] . "\r\n";
 
 	if (isset($_SERVER['HTTP_USER_AGENT'])) {
-		$_request_headers .= 'User-Agent: '.$_SERVER['HTTP_USER_AGENT']."\r\n";
+		$_request_headers .= 'User-Agent: ' . $_SERVER['HTTP_USER_AGENT']."\r\n";
 	}
 	if (isset($_SERVER['HTTP_ACCEPT'])) {
-		$_request_headers .= 'Accept: '.$_SERVER['HTTP_ACCEPT']."\r\n";
+		$_request_headers .= 'Accept: ' . $_SERVER['HTTP_ACCEPT']."\r\n";
 	}
 	else {
 		$_request_headers .= "Accept: */*;q=0.1\r\n";
@@ -639,18 +680,18 @@ do {
 			$cookie_content = explode(';', rawurldecode($cookie_content));
 
 			if ($cookie_id[0] === 'COOKIE') {
-				$cookie_id[3] = str_replace('_', '.', $cookie_id[3]); //stupid PHP can't have dots in var names
+				$cookie_id[3] = str_replace('_', ' . ', $cookie_id[3]); //stupid PHP can't have dots in var names
 
 				if (count($cookie_id) < 4 || ($cookie_content[1] == 'secure' && $_url_parts['scheme'] != 'https')) {
 					continue;
 				}
 
-				if ((preg_match('#\Q' . $cookie_id[3] . '\E$#i', $_url_parts['host']) || strtolower($cookie_id[3]) == strtolower('.' . $_url_parts['host'])) && preg_match('#^\Q' . $cookie_id[2] . '\E#', $_url_parts['path'])) {
+				if ((preg_match('#\Q' . $cookie_id[3] . '\E$#i', $_url_parts['host']) || strtolower($cookie_id[3]) == strtolower(' . ' . $_url_parts['host'])) && preg_match('#^\Q' . $cookie_id[2] . '\E#', $_url_parts['path'])) {
 					$_cookie .= ($_cookie != '' ? '; ' : '') . (empty($cookie_id[1]) ? '' : $cookie_id[1] . '=') . $cookie_content[0];
 				}
 			}
 			elseif ($cookie_id[0] === 'AUTH' && count($cookie_id) === 3) {
-				$cookie_id[2] = str_replace('_', '.', $cookie_id[2]);
+				$cookie_id[2] = str_replace('_', ' . ', $cookie_id[2]);
 
 				if ($_url_parts['host'] . ':' . $_url_parts['port'] === $cookie_id[2]) {
 					$_auth_creds[$cookie_id[1]] = $cookie_content[0];
@@ -774,11 +815,11 @@ do {
 		foreach ($_response_headers['set-cookie'] as $cookie) {
 			$name = $value = $expires = $path = $domain = $secure = $expires_time = '';
 
-			preg_match('#^\s*([^=;,\s]*)\s*=?\s*([^;]*)#', $cookie, $match) and list(, $name, $value) = $match;
-			preg_match('#;\s*expires\s*=\s*([^;]*)#i',     $cookie, $match) and list(, $expires)      = $match;
-			preg_match('#;\s*path\s*=\s*([^;,\s]*)#i',     $cookie, $match) and list(, $path)         = $match;
-			preg_match('#;\s*domain\s*=\s*([^;,\s]*)#i',   $cookie, $match) and list(, $domain)       = $match;
-			preg_match('#;\s*(secure\b)#i',                $cookie, $match) and list(, $secure)       = $match;
+			preg_match('#^\s*([^=;,\s]*)\s*=?\s*([^;]*)#',	$cookie, $match) and list(, $name, $value)	= $match;
+			preg_match('#;\s*expires\s*=\s*([^;]*)#i',		$cookie, $match) and list(, $expires)		= $match;
+			preg_match('#;\s*path\s*=\s*([^;,\s]*)#i',		$cookie, $match) and list(, $path)		= $match;
+			preg_match('#;\s*domain\s*=\s*([^;,\s]*)#i',		$cookie, $match) and list(, $domain)		= $match;
+			preg_match('#;\s*(secure\b)#i',				$cookie, $match) and list(, $secure)		= $match;
 
 			$expires_time = empty($expires) ? 0 : intval(@strtotime($expires));
 			$expires = ($_flags['session_cookies'] and !empty($expires) and time()-$expires_time < 0) ? '' : $expires;
@@ -789,8 +830,8 @@ do {
 			}
 
 			else {
-				$domain = '.' . strtolower(str_replace('..', '.', trim($domain, '.')));
-				if ((!preg_match('#\Q' . $domain . '\E$#i', $_url_parts['host']) and $domain != '.' . $_url_parts['host']) || (substr_count($domain, '.') < 2 and $domain{0} == '.')) {
+				$domain = ' . ' . strtolower(str_replace(' .  . ', ' . ', trim($domain, ' . ')));
+				if ((!preg_match('#\Q' . $domain . '\E$#i', $_url_parts['host']) and $domain != ' . ' . $_url_parts['host']) || (substr_count($domain, ' . ') < 2 and $domain{0} == ' . ')) {
 					continue;
 				}
 			}
@@ -855,7 +896,7 @@ if (!isset($_proxify[$_content_type])) {
 	@set_time_limit(0);
 
 	$_response_keys['content-disposition'] = 'Content-Disposition';
-	$_response_headers['content-disposition'][0] = empty($_content_disp) ? ($_content_type == 'application/octet_stream' ? 'attachment' : 'inline').'; filename="'.$_url_parts['file'].'"' : $_content_disp;
+	$_response_headers['content-disposition'][0] = empty($_content_disp) ? ($_content_type == 'application/octet_stream' ? 'attachment' : 'inline') . '; filename="' . $_url_parts['file'] . '"' : $_content_disp;
 
 	if ($_content_length !== false) {
 		$_response_keys['content-length'] = 'Content-Length';
@@ -870,7 +911,7 @@ if (!isset($_proxify[$_content_type])) {
 
 	foreach ($_response_headers as $name => $array) {
 		foreach ($array as $value) {
-			header($_response_keys[$name].': '.$value, false);
+			header($_response_keys[$name] . ': ' . $value, false);
 		}
 	}
 
@@ -1028,7 +1069,7 @@ else {
 					if (isset($attrs['codebase'])) {
 						$rebuild = true;
 						$temp = $_base;
-						url_parse(complete_url(rtrim($attrs['codebase'], '/').'/', false), $_base);
+						url_parse(complete_url(rtrim($attrs['codebase'], '/') . '/', false), $_base);
 						unset($attrs['codebase']);
 					}
 					if (isset($attrs['code']) && strpos($attrs['code'], '/') !== false) {
@@ -1136,28 +1177,28 @@ else {
 			$new_tag = "<$tag";
 			foreach ($attrs as $name => $value) {
 				$delim = strpos($value, '"') && !strpos($value, "'") ? "'" : '"';
-				$new_tag .= ' ' . $name . ($value !== false ? '='.$delim.$value.$delim : '');
+				$new_tag .= ' ' . $name . ($value !== false ? '=' . $delim.$value.$delim : '');
 			}
 
 			$_response_body = str_replace($matches[0][$i], $new_tag . '>' . $extra_html, $_response_body);
 		}
 	}
 
-	if (!isset($_GET['noform'])) {
-
-		$_url_form = '<div style="border-radius: 0 0 30px 0; top:-110px; height: 140px; width:500px; left:-470px; overflow: hidden; padding:4px; text-align:center; border-bottom:1px solid #755; color:#000; background-color:#FF9864; font-size:12px;z-index:2147483647; position:fixed; text-shadow:none;" onmouseover="this.style.top=\'0px\'; this.style.width=\'100%\'; this.style.left=\'0px\'" onmouseout="this.style.top=\'-110px\'; this.style.width=\'500px\'; this.style.left=\'-470px\'">'."\n";
-		$_url_form .= '<form method="post" action="'.$_script_url.'" style="text-align:center">'."\n";
-		$_url_form .= '<a style="color:#000;text-shadow:none;" href="'.$_script_base.'">Home</a> , <a style="color:#000;text-shadow:none;" href="'.$_url.'">Go to the page</a><br/>';
-		$_url_form .= '<input type="text" size="80" name="' . $q . '" value="'.$_url.'" />';
+	if (!isset($_GET['noform']))
+	{
+		$_url_form = '<div style="border-radius: 0 0 30px 0; top:-110px; height: 140px; width:500px; left:-470px; overflow: hidden; padding:4px; text-align:center; border-bottom:1px solid #755; color:#000; background-color:#FF9864; font-size:12px;z-index:2147483647; position:fixed; text-shadow:none;" onmouseover="this.style.top=\'0px\'; this.style.width=\'100%\'; this.style.left=\'0px\'" onmouseout="this.style.top=\'-110px\'; this.style.width=\'500px\'; this.style.left=\'-470px\'">' . "\n";
+		$_url_form .= '<form method="post" action="' . $_script_url . '" style="text-align:center">' . "\n";
+		$_url_form .= '<a style="color:#000;text-shadow:none;" href="' . $_script_base . '">' . $GLOBALS['_labels']['home'] . '</a> — <a style="color:#000;text-shadow:none;" href="' . $_url . '">' . $GLOBALS['_labels']['gotothepage'] . '</a><br />';
+		$_url_form .= '<input type="text" size="80" name="' . $q . '" value="' . $_url . '" />';
 		$_url_form .= '<input type="submit" name="go" style="font-size: 12px;" value="GO"/>';
-		$_url_form .= '<br/><hr/>';
+		$_url_form .= '<br /><hr />';
 		
 		foreach ($_flags as $flag_name => $flag_value) {
-			$_url_form .= '<label><input type="checkbox" name="' . $hl . '['.$flag_name . ']"'.($flag_value ? ' checked="checked"' : '').' /> '.$_labels[$flag_name][0].'</label>';
+			$_url_form .= '<label><input type="checkbox" name="' . $hl . '[' . $flag_name . ']"' . ($flag_value ? ' checked="checked"' : '') . ' /> ' . $_labels[$flag_name][0] . '</label>';
 		}
 
-		$_url_form .= "</form></div>";
-		$_response_body = str_replace("</head>", "<meta name=\"robots\" content=\"noindex, nofollow\" /></head>", $_response_body);
+		$_url_form .= '</form></div>';
+		$_response_body = str_replace('</head>', '<meta name="robots" content="noindex, nofollow" /></head>', $_response_body);
 	
 		$_response_body = preg_replace('#\<\s*body(.*?)\>#si', "$0\n$_url_form" , $_response_body, 1);
 	}
@@ -1181,7 +1222,7 @@ foreach ($_response_headers as $name => $array) {
 	}
 }
 
-$_response_body = preg_replace('#<\s*body(.*?)>#si', "$0\n".'' , $_response_body);
-$_response_body = preg_replace('#</\s*body>#si', ''."$0" , $_response_body);
+$_response_body = preg_replace('#<\s*body(.*?)>#si', "$0\n" . '' , $_response_body);
+$_response_body = preg_replace('#</\s*body>#si', '' . "$0" , $_response_body);
 
 echo $_response_body;
