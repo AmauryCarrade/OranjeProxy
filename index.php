@@ -27,7 +27,8 @@
 
 // Please, if you want translate it, add same english & french, Russian > "ru", Spain > "es")
 // Find all identification codes here : http://www.metamodpro.com/browser-language-codes
-$language_acceppted = array(
+
+$accepted_languages = array(
 				'en',	// English
 				'fr'	// French
 			);
@@ -43,14 +44,11 @@ function get_language($sDefault = 'en')
 
 			if(in_array($sLang, $language_acceppted))
 				return $sLang;
-
-			else
-				return $sDefault;
+			}
 		}
 	}
 
-	else
-		return $sDefault;
+	return $sDefault;
 }
 
 if(get_language() == 'fr')
@@ -437,9 +435,7 @@ function decode_url($url) {
 //
 
 function clean_txt($text) {
-	$return = !get_magic_quotes_gpc() ? trim(addslashes($text)) : trim($text);
-
-	return $return;
+	return !get_magic_quotes_gpc() ? trim(addslashes($text)) : trim($text);;
 }
 
 
@@ -612,7 +608,7 @@ $_basic_auth_header = '';
 if (isset($_GET[$q], $_POST['____pbavn'], $_POST['username'], $_POST['password'])) {
 	$_request_method = 'GET';
 	$_basic_auth_realm = base64_decode($_POST['____pbavn']);
-	$_basic_auth_header = base64_encode($_POST['username'] . ' : ' . $_POST['password']);
+	$_basic_auth_header = base64_encode($_POST['username'] . ':' . $_POST['password']);
 }
 
 //
@@ -708,7 +704,7 @@ do {
 				}
 			}
 			elseif ($cookie_id[0] === 'AUTH' && count($cookie_id) === 3) {
-				$cookie_id[2] = str_replace('_', ' . ', $cookie_id[2]);
+				$cookie_id[2] = str_replace('_', '.', $cookie_id[2]);
 
 				if ($_url_parts['host'] . ':' . $_url_parts['port'] === $cookie_id[2]) {
 					$_auth_creds[$cookie_id[1]] = $cookie_content[0];
