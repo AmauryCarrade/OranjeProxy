@@ -64,8 +64,9 @@ if(get_language() == 'fr')
 		'home' => 'Accueil',
 		'gotothepage' => 'Aller à la page'
 
-		'error-url-malformed' => ' L\'URL que vous avez entrée est incorrect. Vérifiez que l\'URL est correcte.',
-		'error-url-blacklisted' => 'L\'URL est dans la liste noire du proxy. Veuillez entrer une autre URL.'
+		'error-url-blacklisted' => 'L\'URL est dans la liste noire du proxy. Veuillez entrer une autre URL.',
+		'error-cookie-disabled' => 'Les cookies sont désactivés pour ce site; ils sont nécessaires.",
+		'error-url-malformed' => ' L\'URL que vous avez entrée est incorrect. Vérifiez que l\'URL est correcte.'
 	);
 }
 
@@ -80,8 +81,9 @@ else
 		'home' => 'Home',
 		'gotothepage' => 'Go to the page',
 
-		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.',
-		'error-url-blacklisted' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.'
+		'error-url-blacklisted' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.',
+		'error-cookie-disabled' => 'Cookies are disabled for this website; they are required',
+		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.'
 	);
 }
 
@@ -571,7 +573,7 @@ function afficher_page_form($page) {
 	echo '</div>' . "\n";
 		
 	echo '<div class="windows-popup" id="noCookies" style="display: none;">' . "\n";
-		echo 'Cookies are disabled for this website; they are required';
+		echo $GLOBALS['_labels']['error-cookie-disabled'];
 	echo '</div>' . "\n";
 
 	if ($page['type'] == 'auth') {
