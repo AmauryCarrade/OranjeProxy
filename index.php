@@ -51,7 +51,9 @@ function get_language($sDefault = 'en')
 	return $sDefault;
 }
 
-if(get_language() == 'fr')
+$language = get_language();
+
+if($language == 'fr')
 {
 	$_labels = array(
 		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Remove client-side scripting'),
