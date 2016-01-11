@@ -37,7 +37,7 @@ function get_language($sDefault = 'en')
 		{
 			$sLang = strtolower(substr($sBrowserLanguage, 0, 2));
 
-			if(in_array($sLang, Array('fr', 'en')))
+			if(in_array($sLang, $language_acceppted))
 				return $sLang;
 
 			else
