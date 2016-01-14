@@ -34,12 +34,20 @@ $translations = array(
 		'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'),
 		'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'),
 		'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only '),
+		
 		'home' => 'Home',
 		'gotothepage' => 'Go to the page',
+		'gotothesite' => 'Go to the site',
 
 		'error-url-blacklisted' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.',
 		'error-cookie-disabled' => 'Cookies are disabled for this website; they are required.',
-		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.'
+		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.',
+		'error-unreachable' => 'It was not possible to reach the server at <strong>%s</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. %s: %s.</small>',
+		
+		'username-password-invite' => 'Enter your username and password for "%s" on %s',
+		'username' => 'Username',
+		'password' => 'Password',
+		'login' => 'Login'
 	),
 	
 	'fr' => array(
@@ -48,12 +56,20 @@ $translations = array(
 		'show_referer' => array('Envoyer l\'URL référente aux sites internet', 'Envoyer l\'URL référente'),
 		'base64_encode' => array('Utiliser l\'encodage Base64 pour les URLs', 'Base64'),
 		'session_cookies' => array('Stocker les cookies pour cette session uniquement', 'Stocker les cookies pour cette session uniquement'),
+		
 		'home' => 'Accueil',
 		'gotothepage' => 'Aller à la page',
+		'gotothesite' => 'Aller sur le site',
 
 		'error-url-blacklisted' => 'Cette URL est dans la liste noire du proxy. Veuillez entrer une autre URL.',
-		'error-cookie-disabled' => 'Les cookies sont désactivés pour ce site ; ils sont nécessaires.',
-		'error-url-malformed' => ' L\'URL que vous avez entrée est incorrect. Vérifiez que l\'URL est correcte.'
+		'error-cookie-disabled' => 'Les cookies sont désactivés pour ce site ; ils sont nécessaire à son fonctionnement.',
+		'error-url-malformed' => ' L\'URL que vous avez entrée est invalide. Vérifiez que vous avez tapé la bonne URL.',
+		'error-unreachable' => 'Le serveur à l\'adresse <strong>%s</strong> est injoignable.<br />Vérifiez que vous n\'avez pas fait de faute de frappe, et que le site existe toujours.<br /><br /><small>Erreur n<sup>o</sup> %s : %s.</small>',
+		
+		'username-password-invite' => 'Entrez votre nom d\'utilisateur et mot de passe pour "%s" sur %s',
+		'username' => 'Nom d\'utilisateur',
+		'password' => 'Mot de passe',
+		'login' => 'Se connecter'
 	),
 );
 
@@ -557,9 +573,9 @@ function afficher_page_form($page) {
 	echo '	<form method="post" action="' . $_SERVER['PHP_SELF'] . '" style="text-align:center">' . "\n";
 	echo '		<a href="' . $_SERVER['PHP_SELF'] . '">' . $GLOBALS['_labels']['home'] . '</a> — <a href="' . $url . '">' . $GLOBALS['_labels']['gotothepage'] . '</a><br />' . "\n";
 	echo '		<input id="____q" type="text" size="80" name="' . $GLOBALS['q'] . '" value="' . $url . '" />' . "\n";
-	echo '		<input type="submit" name="go" style="font-size: 12px;" value="Go to the site"/>' . "\n";
+	echo '		<input type="submit" name="go" style="font-size: 12px;" value="' . $GLOBALS['_labels']['gotothesite'] . '"/>' . "\n";
 	echo '		<br /><hr />' . "\n";
-		
+	
 	foreach ($GLOBALS['_flags'] as $flag_name => $flag_value) {
 		echo '		<label><input type="checkbox" name="' . $GLOBALS['hl'] . '[' . $flag_name . ']"' . ($flag_value == true ? ' checked="checked"' : '') . ' /> ' . $GLOBALS['_labels'][$flag_name][0] . '</label>' . "\n";
 	}
@@ -572,12 +588,12 @@ function afficher_page_form($page) {
 	echo '</div>' . "\n";
 
 	if ($page['type'] == 'auth') {
-		echo '<div class="windows-popup" id="auth"><p><b>Enter your username and password for "' . htmlspecialchars($page['flag']) . '" on ' . $GLOBALS['_url_parts']['host'] . '</b>' . "\n";
+		echo '<div class="windows-popup" id="auth"><p><b>' . sprintf($GLOBALS['_labels']['username-password-invite'], htmlspecialchars($page['flag']), $GLOBALS['_url_parts']['host']) . '</b>' . "\n";
 		echo '	<form method="post" action="#">' . "\n";
 		echo '		<input type="hidden" name="____pbavn" value="' . base64_encode($page['flag']) . '" />' . "\n";
-		echo '			<label>Username <input type="text" name="username" value="" /></label>' . "\n";
-		echo '			<label>Password<input type="password" name="password" value="" /></label>' . "\n";
-		echo '			<input type="submit" value="Login" />' . "\n";
+		echo '			<label>' . $GLOBALS['_labels']['username'] . ' <input type="text" name="username" value="" /></label>' . "\n";
+		echo '			<label>' . $GLOBALS['_labels']['password'] . ' <input type="password" name="password" value="" /></label>' . "\n";
+		echo '			<input type="submit" value="' . $GLOBALS['_labels']['login'] . '" />' . "\n";
 		echo '	</form>' . "\n";
 		echo '</div>' . "\n";
 	}
@@ -647,8 +663,7 @@ do {
 	$_socket = @fsockopen((($_url_parts['scheme'] === 'https' and $_system['ssl']) ? 'ssl://' : 'tcp://').$_url_parts['host'], $_url_parts['port'], $err_no, $err_str, 10);
 
 	if ($_socket === FALSE) {
-		// à traduire
-		afficher_page_form(array('type' => 'error', 'flag' => 'It was not possible to reach the server at <strong>' . $_url . '</strong>.<br />Please check the address does not contain a typo, or the site still exists.<br /><br /><small>Error no. ' . htmlspecialchars($err_no) . ': ' . htmlspecialchars($err_str) . '.</small>'));
+		afficher_page_form(array('type' => 'error', 'flag' => sprintf($GLOBALS['_labels']['error-unreachable'], htmlspecialchars($_url), htmlspecialchars($err_no), htmlspecialchars($err_str))));
 	}
 
 	//
@@ -977,7 +992,7 @@ else {
 			'audio'			=> array('src'),
 			'base'			=> array('href'),
 			'bgsound'		=> array('src'),
-			'blockquote'		=> array('cite'),
+			'blockquote'	=> array('cite'),
 			'body'			=> array('background'),
 			'del'			=> array('cite'),
 			'embed'			=> array('src'),
@@ -995,7 +1010,7 @@ else {
 			'form'			=> array('action'),
 			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
 			'param'			=> array('value'),
-			'q'			=> array('cite'),
+			'q'				=> array('cite'),
 			'script'		=> array('src'),
 			'table'			=> array('background'),
 			'td'			=> array('background'),
@@ -1209,7 +1224,7 @@ else {
 		$_url_form .= '<br /><hr />';
 		
 		foreach ($_flags as $flag_name => $flag_value) {
-			$_url_form .= '<label><input type="checkbox" name="' . $hl . '[' . $flag_name . ']"' . ($flag_value ? ' checked="checked"' : '') . ' /> ' . $_labels[$flag_name][0] . '</label>';
+			$_url_form .= '<label><input type="checkbox" name="' . $hl . '[' . $flag_name . ']"' . ($flag_value ? ' checked="checked"' : '') . ' /> ' . $GLOBALS['_labels'][$flag_name][0] . '</label>';
 		}
 
 		$_url_form .= '</form></div>';
