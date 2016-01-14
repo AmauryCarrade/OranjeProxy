@@ -50,7 +50,7 @@ $accepted_languages = array(
 				'fr'	// French
 			);
 
-$language = get_language();
+$language = get_language($accepted_languages);
 
 if($language == 'fr')
 {
