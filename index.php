@@ -22,8 +22,69 @@
 	+-----------------------------------------------------------------------------------------------+
 */
 
-// LANGUAGE
+// TRANSLATIONS
 //
+
+// Please, if you want translate it, add copy one array with your language key (Russian > "ru", Spain > "es"...)
+// Find all identification codes here : http://www.metamodpro.com/browser-language-codes
+$translations = array(
+	'en' => array(
+		'remove_scripts' => array('Remove client-side scripting (I.E, JavaScript)', 'Remove client-side scripting'),
+		'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'),
+		'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'),
+		'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'),
+		'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only '),
+		'home' => 'Home',
+		'gotothepage' => 'Go to the page',
+
+		'error-url-blacklisted' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.',
+		'error-cookie-disabled' => 'Cookies are disabled for this website; they are required.',
+		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.'
+	),
+	
+	'fr' => array(
+		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Désactiver les scripts client'),
+		'accept_cookies' => array('Autoriser les cookies à être stockés', 'Autoriser les cookies'),
+		'show_referer' => array('Envoyer l\'URL référente aux sites internet', 'Envoyer l\'URL référente'),
+		'base64_encode' => array('Utiliser l\'encodage Base64 pour les URLs', 'Base64'),
+		'session_cookies' => array('Stocker les cookies pour cette session uniquement', 'Stocker les cookies pour cette session uniquement'),
+		'home' => 'Accueil',
+		'gotothepage' => 'Aller à la page',
+
+		'error-url-blacklisted' => 'Cette URL est dans la liste noire du proxy. Veuillez entrer une autre URL.',
+		'error-cookie-disabled' => 'Les cookies sont désactivés pour ce site ; ils sont nécessaires.',
+		'error-url-malformed' => ' L\'URL que vous avez entrée est incorrect. Vérifiez que l\'URL est correcte.'
+	),
+);
+
+
+// CONFIGURABLE OPTIONS
+//
+
+// Default values
+$_flags = array (
+	'remove_scripts'	=> false,
+	'accept_cookies'	=> true,
+	'show_referer'		=> true,
+	'base64_encode'		=> true,
+	'session_cookies'	=> true
+);
+
+
+// Put here the hosts blacklisted by the server.
+// /!\ Parsed as a regular expression. Don't forget to escape characters.
+$_hosts_blacklisted = array(
+	// empêche de lire le localhost (plus pratique pour éviter qu'un visiteur lise de localhost de votre serveur, donc votre serveur)
+	'#^127\.|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|localhost#i',
+);
+
+//
+// END OF CONFIGURABLE OPTIONS.
+//
+
+
+
+// Loading translations
 
 function get_language($accepted_languages, $sDefault = 'en')
 {
@@ -43,73 +104,10 @@ function get_language($accepted_languages, $sDefault = 'en')
 	return $sDefault;
 }
 
-// Please, if you want translate it, add same english & french, Russian > "ru", Spain > "es")
-// Find all identification codes here : http://www.metamodpro.com/browser-language-codes
-$accepted_languages = array(
-				'en',	// English
-				'fr'	// French
-			);
-
-$language = get_language($accepted_languages);
-
-if($language == 'fr')
-{
-	$_labels = array(
-		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Remove client-side scripting'),
-		'accept_cookies' => array('Autoriser les cookies à être stockés', 'Allow cookies to be stored'),
-		'show_referer' => array('Envoyer l\'URL référente aux sites internet', 'Send my referer to the websites'),
-		'base64_encode' => array('Utiliser l\'encodage Base64 pour les URLs', 'Base64'),
-		'session_cookies' => array('Stocker les cookies pour cette session uniquement ', 'Store cookies for this session only '),
-		'home' => 'Accueil',
-		'gotothepage' => 'Aller à la page',
-
-		'error-url-blacklisted' => 'L\'URL est dans la liste noire du proxy. Veuillez entrer une autre URL.',
-		'error-cookie-disabled' => 'Les cookies sont désactivés pour ce site; ils sont nécessaires.',
-		'error-url-malformed' => ' L\'URL que vous avez entrée est incorrect. Vérifiez que l\'URL est correcte.'
-	);
-}
-
-else
-{
-	$_labels = array(
-		'remove_scripts' => array('Remove client-side scripting (I.E, JavaScript)', 'Remove client-side scripting'),
-		'accept_cookies' => array('Allow cookies to be stored', 'Allow cookies to be stored'),
-		'show_referer' => array('Send my referer to the websites', 'Send my referer to the websites'),
-		'base64_encode' => array('Use Base64 encoding of URLs', 'Base64'),
-		'session_cookies' => array('Store cookies for this session only ', 'Store cookies for this session only '),
-		'home' => 'Home',
-		'gotothepage' => 'Go to the page',
-
-		'error-url-blacklisted' => 'The URL you\'re attempting to access is blacklisted by this server. Please select another URL.',
-		'error-cookie-disabled' => 'Cookies are disabled for this website; they are required.',
-		'error-url-malformed' => 'The URL you entered is malformed. Please check whether you entered the correct URL or not.'
-	);
-}
+$_labels = $translations[get_language(array_keys($translations))];
 
 
-// CONFIGURABLE OPTIONS
-//
 
-// Default values
-$_flags = array (
-	'remove_scripts'	=> false,
-	'accept_cookies'	=> true,
-	'show_referer'		=> true,
-	'base64_encode'	=> true,
-	'session_cookies'	=> true
-);
-
-
-// Put here the hosts blacklisted by the server.
-// /!\ Parsed as a regular expression. Don't forget to escape characters.
-$_hosts_blacklisted = array(
-	// empêche de lire le localhost (plus pratique pour éviter qu'un visiteur lise de localhost de votre serveur, donc votre serveur
-	'#^127\.|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|localhost#i',
-);
-
-//
-// END CONFIGURABLE OPTIONS.
-//
 
 function vd($var) { var_dump($var); }
 
