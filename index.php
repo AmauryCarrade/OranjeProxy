@@ -1,24 +1,24 @@
 <?php
 /*
 	+-----------------------+-----------------------------------------------------------------------+
-	|  Script		| PHProxy   +   SabzProxy						|
-	|  Author		| Abdullah Arif								|
-	|  Modifier		| Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade + Machou	|
-	|  Last Modified	| 11 january 2016							|
+	|  Script               | PHProxy   +   SabzProxy                                               |
+	|  Author               | Abdullah Arif                                                         |
+	|  Modifier             | Forgetful  (Hamid R) + Timo Van Neerden + Amaury Carrade + Machou     |
+	|  Last Modified        | 14 january 2016                                                       |
 	+-----------------------+-----------------------------------------------------------------------+
-	|  This program is free software; you can redistribute it and/or				|
-	|  modify it under the terms of the GNU General Public License					|
-	|  as published by the Free Software Foundation; either version 2				|
-	|  of the License, or (at your option) any later version.					|
-	|												|
-	|  This program is distributed in the hope that it will be useful,				|
-	|  but WITHOUT ANY WARRANTY; without even the implied warranty of				|
-	|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the				|
-	|  GNU General Public License for more details.							|
-	|												|
-	|  You should have received a copy of the GNU General Public License				|
-	|  along with this program; if not, write to the Free Software					|
-	|  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.			|
+	|  This program is free software; you can redistribute it and/or                                |
+	|  modify it under the terms of the GNU General Public License                                  |
+	|  as published by the Free Software Foundation; either version 2                               |
+	|  of the License, or (at your option) any later version.                                       |
+	|                                                                                               |
+	|  This program is distributed in the hope that it will be useful,                              |
+	|  but WITHOUT ANY WARRANTY; without even the implied warranty of                               |
+	|  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                                |
+	|  GNU General Public License for more details.                                                 |
+	|                                                                                               |
+	|  You should have received a copy of the GNU General Public License                            |
+	|  along with this program; if not, write to the Free Software                                  |
+	|  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                  |
 	+-----------------------------------------------------------------------------------------------+
 */
 
@@ -986,37 +986,37 @@ else {
 	//
 
 	$tags = array(
-			'a'			=> array('href'),
-			'applet'		=> array('codebase', 'code', 'object', 'archive'),
-			'area'			=> array('href'),
-			'audio'			=> array('src'),
-			'base'			=> array('href'),
-			'bgsound'		=> array('src'),
-			'blockquote'	=> array('cite'),
-			'body'			=> array('background'),
-			'del'			=> array('cite'),
-			'embed'			=> array('src'),
-			'fig'			=> array('src', 'imagemap'),
-			'frame'			=> array('src', 'longdesc'),
-			'head'			=> array('profile'),
-			'html'			=> array('itemtype', 'manifest'),
-			'iframe'		=> array('src', 'longdesc'),
-			'img'			=> array('src'),
-			'input'			=> array('src', 'usemap'),
-			'ins'			=> array('cite'),
-			'link'			=> array('href'),
-			'layer'			=> array('src'),
-			'meta'			=> array('name', 'content'),
-			'form'			=> array('action'),
-			'object'		=> array('usermap', 'codebase', 'classid', 'archive', 'data'),
-			'param'			=> array('value'),
-			'q'				=> array('cite'),
-			'script'		=> array('src'),
-			'table'			=> array('background'),
-			'td'			=> array('background'),
-			'th'			=> array('background'),
-			'tr'			=> array('background'),
-			'video'			=> array('src'),
+			'a'             => array('href'),
+			'applet'        => array('codebase', 'code', 'object', 'archive'),
+			'area'          => array('href'),
+			'audio'         => array('src'),
+			'base'          => array('href'),
+			'bgsound'       => array('src'),
+			'blockquote'    => array('cite'),
+			'body'          => array('background'),
+			'del'           => array('cite'),
+			'embed'         => array('src'),
+			'fig'           => array('src', 'imagemap'),
+			'frame'         => array('src', 'longdesc'),
+			'head'          => array('profile'),
+			'html'          => array('itemtype', 'manifest'),
+			'iframe'        => array('src', 'longdesc'),
+			'img'           => array('src'),
+			'input'         => array('src', 'usemap'),
+			'ins'           => array('cite'),
+			'link'          => array('href'),
+			'layer'         => array('src'),
+			'meta'          => array('name', 'content'),
+			'form'          => array('action'),
+			'object'        => array('usermap', 'codebase', 'classid', 'archive', 'data'),
+			'param'         => array('value'),
+			'q'             => array('cite'),
+			'script'        => array('src'),
+			'table'         => array('background'),
+			'td'            => array('background'),
+			'th'            => array('background'),
+			'tr'            => array('background'),
+			'video'         => array('src'),
 		);
 
 	preg_match_all('#(<\s*style[^>]*>)(.*?)(<\s*/\s*style[^>]*>)#is', $_response_body, $matches, PREG_SET_ORDER);
