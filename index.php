@@ -450,7 +450,7 @@ function decode_url($url) {
 //
 
 function clean_txt($text) {
-	return !get_magic_quotes_gpc() ? trim(addslashes($text)) : trim($text);;
+	return !get_magic_quotes_gpc() ? trim(addslashes($text)) : trim($text);
 }
 
 
