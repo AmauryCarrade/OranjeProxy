@@ -49,7 +49,7 @@ $translations = array(
 		'password' => 'Password',
 		'login' => 'Login'
 	),
-	
+
 	'fr' => array(
 		'remove_scripts' => array('Désactiver les différents scripts côté client (I.E, JavaScript)', 'Désactiver les scripts client'),
 		'accept_cookies' => array('Autoriser les cookies à être stockés', 'Autoriser les cookies'),
@@ -82,7 +82,7 @@ $_flags = array (
 	'remove_scripts'	=> false,
 	'accept_cookies'	=> true,
 	'show_referer'		=> true,
-	'base64_encode'		=> true,
+	'base64_encode'	=> true,
 	'session_cookies'	=> true
 );
 
